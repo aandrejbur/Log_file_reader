@@ -15,7 +15,7 @@
 /* One direction list for output buffer */
 typedef struct list{
     /* Buffer for line */
-    char string[1024];
+    char* string;
     /* pointer to next element */
     struct list *pstNext;
 } list_t;
@@ -29,7 +29,10 @@ void list_add_end(list_t *pstHead, char *string)
     }
     list_t *pstTemp = NULL;
     pstTemp = malloc(sizeof(list_t));
-    sprintf(pstTemp->string, "%s", string);
+    pstTemp->string = malloc(strlen(string)+1);
+    
+    strcpy(pstTemp->string, string);
+    //sprintf(pstTemp->string, "%s", string);
     pstTemp->pstNext=NULL;
     pstHead->pstNext = pstTemp;
 }
@@ -41,6 +44,8 @@ void list_destroy(list_t *pstHead)
     while (pstHead!=NULL)
     {
         pstTemp = pstHead->pstNext;
+        free(pstHead->string);
+        pstHead->string=NULL;
         free(pstHead);
         pstHead = pstTemp;
     }
@@ -51,7 +56,8 @@ void list_printing(list_t *pstHead, char *Szseparator)
 {
     printf("%s",pstHead->string);
     pstHead=pstHead->pstNext;
-    while (pstHead->pstNext!=NULL) {
+    while (pstHead->pstNext!=NULL)
+    {
         printf("%s%s",pstHead->string,Szseparator);
         pstHead=pstHead->pstNext;
     }
@@ -127,6 +133,7 @@ int main(int argc, const char * argv[])
     }
     
     /* Starting the list with output strings */
+    pstOutBuffer->string = malloc(128);
     sprintf(pstOutBuffer->string," Strings corresponding to mask - %s :\n", szMask);
     pstOutBuffer->pstNext=NULL;
     
