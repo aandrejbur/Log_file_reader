@@ -56,19 +56,18 @@ void list_printing(list_t *pstHead, char *Szseparator)
 {
     printf("%s",pstHead->string);
     pstHead=pstHead->pstNext;
-    while (pstHead->pstNext!=NULL)
+    while (pstHead!=NULL)
     {
-        printf("%s%s",pstHead->string,Szseparator);
-        pstHead=pstHead->pstNext;
+        if (pstHead->pstNext==NULL) {
+            printf("%s \n", pstHead->string);
+            pstHead=pstHead->pstNext;
+        }
+        else{
+            printf("%s%s",pstHead->string,Szseparator);
+            pstHead=pstHead->pstNext;
+        }
     }
-    printf("%s \n", pstHead->string);
-}
-
-/* Read line from the end of file */
-int fread_line_tail(FILE *pf, int *position, char *szBuff)
-{
-    //fseek(<#FILE *#>, <#long#>, <#int#>)
-    return SUCCESS;
+    //printf("%s \n", pstHead->string);
 }
 
 /* Search for mask in string */
@@ -206,6 +205,7 @@ int main(int argc, const char * argv[])
         }
     }
     
+    printf("Cleaning \n");
     list_printing(pstOutBuffer, (char *)szSeparator);
     list_destroy(pstOutBuffer);
     fclose(file);
