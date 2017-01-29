@@ -1,0 +1,105 @@
+Jan 29 00:07:12 ubuntu anacron[1114]: Job `cron.daily' terminated
+Jan 29 00:07:12 ubuntu anacron[1114]: Normal exit (1 job run)
+Jan 29 00:08:43 ubuntu kernel: [  421.741734] t2[4453]: segfault at 0 ip 00007f4bbeec345d sp 00007fff99b3b830 error 6 in libc-2.19.so[7f4bbeddf000+1bb000]
+Jan 29 00:09:01 ubuntu CRON[4507]: (root) CMD (  [ -x /usr/lib/php5/maxlifetime ] && [ -x /usr/lib/php5/sessionclean ] && [ -d /var/lib/php5 ] && /usr/lib/php5/sessionclean /var/lib/php5 $(/usr/lib/php5/maxlifetime))
+Jan 29 00:09:46 ubuntu kernel: [  484.343825] t2[4669]: segfault at 0 ip 00007f27f135f45d sp 00007fff705c3330 error 6 in libc-2.19.so[7f27f127b000+1bb000]
+Jan 29 00:10:50 ubuntu kernel: [  548.969351] t2[4878]: segfault at 0 ip 00007f391faeb45d sp 00007fffa3cdafb0 error 6 in libc-2.19.so[7f391fa07000+1bb000]
+Jan 29 00:14:04 ubuntu dhclient: DHCPREQUEST of 10.211.55.5 on eth1 to 10.211.55.1 port 67 (xid=0x5d642ee4)
+Jan 29 00:14:04 ubuntu dhclient: DHCPACK of 10.211.55.5 from 10.211.55.1
+Jan 29 00:14:04 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 00:14:04 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 00:14:04 ubuntu dhclient: bound to 10.211.55.5 -- renewal in 721 seconds.
+Jan 29 00:14:04 ubuntu NetworkManager[788]: <info> (eth1): DHCPv4 state changed bound -> renew
+Jan 29 00:14:04 ubuntu NetworkManager[788]: <info>   address 10.211.55.5
+Jan 29 00:14:04 ubuntu NetworkManager[788]: <info>   prefix 24 (255.255.255.0)
+Jan 29 00:14:04 ubuntu NetworkManager[788]: <info>   gateway 10.211.55.1
+Jan 29 00:14:04 ubuntu NetworkManager[788]: <info>   nameserver '10.211.55.1'
+Jan 29 00:14:04 ubuntu NetworkManager[788]: <info>   domain name 'localdomain'
+Jan 29 00:14:04 ubuntu dbus[452]: [system] Activating service name='org.freedesktop.nm_dispatcher' (using servicehelper)
+Jan 29 00:14:05 ubuntu dbus[452]: [system] Successfully activated service 'org.freedesktop.nm_dispatcher'
+Jan 29 00:17:01 ubuntu CRON[6121]: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)
+Jan 29 00:25:25 ubuntu kernel: [ 1423.336002] t2[7742]: segfault at 401130 ip 000000000040093e sp 00007fff9fa16f20 error 7 in t2[400000+2000]
+Jan 29 00:26:05 ubuntu dhclient: DHCPREQUEST of 10.211.55.5 on eth1 to 10.211.55.1 port 67 (xid=0x5d642ee4)
+Jan 29 00:26:05 ubuntu dhclient: DHCPACK of 10.211.55.5 from 10.211.55.1
+Jan 29 00:26:05 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 00:26:05 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 00:26:05 ubuntu dhclient: bound to 10.211.55.5 -- renewal in 850 seconds.
+Jan 29 00:26:05 ubuntu NetworkManager[788]: <info> (eth1): DHCPv4 state changed renew -> renew
+Jan 29 00:26:05 ubuntu NetworkManager[788]: <info>   address 10.211.55.5
+Jan 29 00:26:05 ubuntu NetworkManager[788]: <info>   prefix 24 (255.255.255.0)
+Jan 29 00:26:05 ubuntu NetworkManager[788]: <info>   gateway 10.211.55.1
+Jan 29 00:26:05 ubuntu NetworkManager[788]: <info>   nameserver '10.211.55.1'
+Jan 29 00:26:05 ubuntu NetworkManager[788]: <info>   domain name 'localdomain'
+Jan 29 00:26:05 ubuntu dbus[452]: [system] Activating service name='org.freedesktop.nm_dispatcher' (using servicehelper)
+Jan 29 00:26:05 ubuntu dbus[452]: [system] Successfully activated service 'org.freedesktop.nm_dispatcher'
+Jan 29 00:34:04 ubuntu kernel: [ 1942.892338] t2[9306]: segfault at 401110 ip 000000000040093e sp 00007fff45bc56b0 error 7 in t2[400000+2000]
+Jan 29 00:39:01 ubuntu CRON[10189]: (root) CMD (  [ -x /usr/lib/php5/maxlifetime ] && [ -x /usr/lib/php5/sessionclean ] && [ -d /var/lib/php5 ] && /usr/lib/php5/sessionclean /var/lib/php5 $(/usr/lib/php5/maxlifetime))
+Jan 29 00:40:15 ubuntu dhclient: DHCPREQUEST of 10.211.55.5 on eth1 to 10.211.55.1 port 67 (xid=0x5d642ee4)
+Jan 29 00:40:15 ubuntu dhclient: DHCPACK of 10.211.55.5 from 10.211.55.1
+Jan 29 00:40:15 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 00:40:15 ubuntu NetworkManager[788]: <info> (eth1): DHCPv4 state changed renew -> renew
+Jan 29 00:40:15 ubuntu NetworkManager[788]: <info>   address 10.211.55.5
+Jan 29 00:40:15 ubuntu NetworkManager[788]: <info>   prefix 24 (255.255.255.0)
+Jan 29 00:40:15 ubuntu NetworkManager[788]: <info>   gateway 10.211.55.1
+Jan 29 00:40:15 ubuntu NetworkManager[788]: <info>   nameserver '10.211.55.1'
+Jan 29 00:40:15 ubuntu NetworkManager[788]: <info>   domain name 'localdomain'
+Jan 29 00:40:15 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 00:40:15 ubuntu dhclient: bound to 10.211.55.5 -- renewal in 887 seconds.
+Jan 29 00:40:15 ubuntu dbus[452]: [system] Activating service name='org.freedesktop.nm_dispatcher' (using servicehelper)
+Jan 29 00:40:15 ubuntu dbus[452]: [system] Successfully activated service 'org.freedesktop.nm_dispatcher'
+Jan 29 00:41:13 ubuntu kernel: [ 2371.380757] t2[10625]: segfault at 7ff1212bfc16 ip 0000000000400bd0 sp 00007fff09bff1e0 error 7 in t2[400000+2000]
+Jan 29 00:42:02 ubuntu kernel: [ 2420.897264] t2[10791]: segfault at 400 ip 0000000000400bdb sp 00007fff82e9fca0 error 6 in t2[400000+2000]
+Jan 29 00:55:02 ubuntu dhclient: DHCPREQUEST of 10.211.55.5 on eth1 to 10.211.55.1 port 67 (xid=0x5d642ee4)
+Jan 29 00:55:02 ubuntu dhclient: DHCPACK of 10.211.55.5 from 10.211.55.1
+Jan 29 00:55:02 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 00:55:02 ubuntu NetworkManager[788]: <info> (eth1): DHCPv4 state changed renew -> renew
+Jan 29 00:55:02 ubuntu NetworkManager[788]: <info>   address 10.211.55.5
+Jan 29 00:55:02 ubuntu NetworkManager[788]: <info>   prefix 24 (255.255.255.0)
+Jan 29 00:55:02 ubuntu NetworkManager[788]: <info>   gateway 10.211.55.1
+Jan 29 00:55:02 ubuntu NetworkManager[788]: <info>   nameserver '10.211.55.1'
+Jan 29 00:55:02 ubuntu NetworkManager[788]: <info>   domain name 'localdomain'
+Jan 29 00:55:02 ubuntu dbus[452]: [system] Activating service name='org.freedesktop.nm_dispatcher' (using servicehelper)
+Jan 29 00:55:02 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 00:55:02 ubuntu dhclient: bound to 10.211.55.5 -- renewal in 833 seconds.
+Jan 29 00:55:02 ubuntu dbus[452]: [system] Successfully activated service 'org.freedesktop.nm_dispatcher'
+Jan 29 01:08:55 ubuntu dhclient: DHCPREQUEST of 10.211.55.5 on eth1 to 10.211.55.1 port 67 (xid=0x5d642ee4)
+Jan 29 01:08:55 ubuntu dhclient: DHCPACK of 10.211.55.5 from 10.211.55.1
+Jan 29 01:08:55 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 01:08:55 ubuntu NetworkManager[788]: <info> (eth1): DHCPv4 state changed renew -> renew
+Jan 29 01:08:55 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 01:08:55 ubuntu dhclient: bound to 10.211.55.5 -- renewal in 799 seconds.
+Jan 29 01:08:55 ubuntu NetworkManager[788]: <info>   address 10.211.55.5
+Jan 29 01:08:55 ubuntu NetworkManager[788]: <info>   prefix 24 (255.255.255.0)
+Jan 29 01:08:55 ubuntu NetworkManager[788]: <info>   gateway 10.211.55.1
+Jan 29 01:08:55 ubuntu NetworkManager[788]: <info>   nameserver '10.211.55.1'
+Jan 29 01:08:55 ubuntu NetworkManager[788]: <info>   domain name 'localdomain'
+Jan 29 01:08:55 ubuntu dbus[452]: [system] Activating service name='org.freedesktop.nm_dispatcher' (using servicehelper)
+Jan 29 01:08:56 ubuntu dbus[452]: [system] Successfully activated service 'org.freedesktop.nm_dispatcher'
+Jan 29 01:09:01 ubuntu CRON[15748]: (root) CMD (  [ -x /usr/lib/php5/maxlifetime ] && [ -x /usr/lib/php5/sessionclean ] && [ -d /var/lib/php5 ] && /usr/lib/php5/sessionclean /var/lib/php5 $(/usr/lib/php5/maxlifetime))
+Jan 29 01:17:01 ubuntu CRON[17232]: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)
+Jan 29 01:22:14 ubuntu dhclient: DHCPREQUEST of 10.211.55.5 on eth1 to 10.211.55.1 port 67 (xid=0x5d642ee4)
+Jan 29 01:22:14 ubuntu dhclient: DHCPACK of 10.211.55.5 from 10.211.55.1
+Jan 29 01:22:14 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 01:22:14 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 01:22:14 ubuntu dhclient: bound to 10.211.55.5 -- renewal in 763 seconds.
+Jan 29 01:22:14 ubuntu NetworkManager[788]: <info> (eth1): DHCPv4 state changed renew -> renew
+Jan 29 01:22:14 ubuntu NetworkManager[788]: <info>   address 10.211.55.5
+Jan 29 01:22:14 ubuntu NetworkManager[788]: <info>   prefix 24 (255.255.255.0)
+Jan 29 01:22:14 ubuntu NetworkManager[788]: <info>   gateway 10.211.55.1
+Jan 29 01:22:14 ubuntu NetworkManager[788]: <info>   nameserver '10.211.55.1'
+Jan 29 01:22:14 ubuntu NetworkManager[788]: <info>   domain name 'localdomain'
+Jan 29 01:22:14 ubuntu dbus[452]: [system] Activating service name='org.freedesktop.nm_dispatcher' (using servicehelper)
+Jan 29 01:22:14 ubuntu dbus[452]: [system] Successfully activated service 'org.freedesktop.nm_dispatcher'
+Jan 29 01:34:57 ubuntu dhclient: DHCPREQUEST of 10.211.55.5 on eth1 to 10.211.55.1 port 67 (xid=0x5d642ee4)
+Jan 29 01:34:57 ubuntu dhclient: DHCPACK of 10.211.55.5 from 10.211.55.1
+Jan 29 01:34:57 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 01:34:57 ubuntu dhclient: suspect value in host_name option - discarded
+Jan 29 01:34:57 ubuntu dhclient: bound to 10.211.55.5 -- renewal in 802 seconds.
+Jan 29 01:34:57 ubuntu NetworkManager[788]: <info> (eth1): DHCPv4 state changed renew -> renew
+Jan 29 01:34:57 ubuntu NetworkManager[788]: <info>   address 10.211.55.5
+Jan 29 01:34:57 ubuntu NetworkManager[788]: <info>   prefix 24 (255.255.255.0)
+Jan 29 01:34:57 ubuntu NetworkManager[788]: <info>   gateway 10.211.55.1
+Jan 29 01:34:57 ubuntu NetworkManager[788]: <info>   nameserver '10.211.55.1'
+Jan 29 01:34:57 ubuntu NetworkManager[788]: <info>   domain name 'localdomain'
+Jan 29 01:34:57 ubuntu dbus[452]: [system] Activating service name='org.freedesktop.nm_dispatcher' (using servicehelper)
+Jan 29 01:34:57 ubuntu dbus[452]: [system] Successfully activated service 'org.freedesktop.nm_dispatcher'
