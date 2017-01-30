@@ -16,116 +16,187 @@
 //
 
 /* Exit codes */
-#define ERROR   -1
-#define SUCCESS  0
-#define YES      1
-#define NO       1
+#define ERROR       -1
+#define SUCCESS     0
+#define FILEEND     10
+#define MAX_LINES   20
 
 /* Standart path to log file for testing */
 #define DEFAULT_FILE_PATH "log.txt"
 
 /* Global mutexes: 1 - read->search mutex, 2 - search->write mutex 3 - common parameters mutex  */
-pthread_mutex_t mutex_RS, mutex_SW, mutex_CP;
-int file_end = 0, max_lines = 0;
+pthread_mutex_t mutex_RS, mutex_SW;
 
+/* Input parameters */
+const char *szMask, *szFilePath, *szSeparator;
+int iScanTail, iMaxLines, iTotallStrings;
 
 /* ./execute -f-file_path -m-mask -l-max_lines -t-scan_tail -s-separator */
 
-/* One direction linked list for output buffer */
+
+/* a node struct */
+typedef struct node_t
+{
+    char* szLine;
+    int iFlag;
+    struct node_t *pnNext, *pnPrev;
+} node_t;
+
+/* Two direction linked list for output buffer */
 typedef struct list
 {
-    /* Buffer for line */
-    char* string;
-    /* pointer to next element */
-    struct list *pstNext;
+    int iNodes;
+    char *pszTitle;
+    /* pointers to next, previous, start and end nodes */
+    struct node_t *pnHead, *pnTail;
 } list_t;
+
 
 /* Struct for threads */
 typedef struct data
 {
-    const char *szMask, *szFilePath, *szSeparator;
-    int iScanTail, iMaxLines, iTotallStrings;
-    char szLine_for_search[1024],szLine_for_write[1024];
-    list_t *pstOutBuffer;
-    int file_end, max_lines,line_to_search,line_to_write;
     
+    /* Queue for search and write */
+    list_t *plSearchQueue, *plWrightQueue;
+    
+    /* Output buffer */
+    list_t *pstOutBuffer;
     
 } data_t;
 
-/* Does the threads still needs to work */
-int NeedMore(){
-    pthread_mutex_lock(&mutex_CP);
-    if ( (file_end != 0) || (max_lines != 0) )
-    {
-        pthread_mutex_unlock(&mutex_CP);
-        return NO;
-    }
-    pthread_mutex_unlock(&mutex_CP);
-    return YES;
-}
+/* Add node_t to end of list_t */
 
-/* Adding new element to the end of list */
-void list_add_end(list_t *pstHead, char *string)
+
+/* Add node_t to start of list_t */
+/* Destroy list_t*/
+/* Print list_t*/
+
+
+
+/* Adding new element to the end of the list_t */
+void list_push(list_t *pstList, char *string, int flag)
 {
-    /*While it's not the end*/
-    while (pstHead->pstNext!=NULL)
-    {
-        pstHead=pstHead->pstNext;
-    }
-    
     /* create new list element */
-    list_t *pstTemp = NULL;
-    pstTemp = malloc(sizeof(list_t));
-    pstTemp->string = malloc(strlen(string)+1);
-    strcpy(pstTemp->string, string);
-    pstTemp->pstNext=NULL;
-    
+    node_t *pnNewNode = malloc(sizeof(node_t));
+    pnNewNode->pnNext = NULL;
+    pnNewNode->pnPrev = pstList->pnTail;
+    pnNewNode->szLine = malloc(strlen(string)+1);
+    strcpy(pnNewNode->szLine, string);
+    pnNewNode->iFlag = flag;
     /* givin to the previous list element adress of the new list element */
-    pstHead->pstNext = pstTemp;
+    pstList->pnTail = pnNewNode;
+    pstList->iNodes++;
 }
 
-/* Destroing list */
-void list_destroy(list_t *pstHead)
+/* Adding new node_t to the top of the list_t */
+void list_pop(list_t *pstList, char *string, int flag)
 {
-    /* Backup adress */
-    list_t *pstTemp = NULL;
-    /* Untill we have something */
-    while (pstHead!=NULL)
+    /* create new list element */
+    node_t *pnNewNode = malloc(sizeof(node_t));
+    pnNewNode->pnNext = pstList->pnHead;
+    pnNewNode->pnPrev = NULL;
+    pnNewNode->szLine = malloc(strlen(string)+1);
+    strcpy(pnNewNode->szLine, string);
+    pnNewNode->iFlag = flag;
+    /* givin to the previous list element adress of the new list element */
+    pstList->pnHead = pnNewNode;
+    pstList->iNodes++;
+}
+
+/* deleting the element */
+void delete_element(list_t *pstList, node_t *pnNode)
+{
+    /* if previous node_t exist */
+    if (pnNode->pnPrev != NULL)
     {
-        pstTemp = pstHead->pstNext;
-        free(pstHead->string);
-        pstHead->string=NULL;
-        free(pstHead);
-        pstHead = pstTemp;
+        pnNode->pnPrev->pnNext = pnNode->pnNext;
+        pnNode->pnNext = NULL;
+    }
+    /* if next node_t exist */
+    if (pnNode->pnNext != NULL) {
+        pnNode->pnNext->pnPrev = pnNode->pnPrev;
+        pnNode->pnPrev = NULL;
+    }
+    pstList->iNodes--;
+    free(pnNode->szLine);
+    pnNode->szLine = NULL;
+    free(pnNode);
+    /* If in list was only one element */
+    if (pstList->iNodes == 0)
+    {
+        pstList->pnHead = NULL;
+        pstList->pnTail = NULL;
+        free(pstList->pszTitle);
+        pstList->pszTitle = NULL;
+        free(pstList);
     }
 }
 
-/* Print buffer to console */
-void list_printing(list_t *pstHead, char *Szseparator)
+
+/* Destroy list_t*/
+void list_destroy(list_t *pstList)
 {
-    /* Print the Title of list */
-    printf("%s",pstHead->string);
-    pstHead=pstHead->pstNext;
-    /* Until we have something to print */
-    while (pstHead!=NULL)
+    /* Backup adress of node */
+    node_t *pnTemp = NULL;
+    
+    /* Untill we have something at the top of the list */
+    while (pstList->pnHead != NULL)
     {
-        /* If we at the end of list */
-        if (pstHead->pstNext==NULL) {
-            printf("%s \n", pstHead->string);
-            pstHead=pstHead->pstNext;
+        /* Backup next node_t adress */
+        pnTemp = pstList->pnHead->pnNext;
+        /* if exist next note_t then updating his pointer to previous node_t */
+        if (pstList->pnHead->pnNext!=NULL)
+        {
+            pstList->pnHead->pnNext->pnPrev = NULL;
+        }
+        /* Just in case */
+        pstList->pnHead->pnPrev = NULL;
+        /* Cleaning the next node_t pointer */
+        pstList->pnHead->pnNext = NULL;
+        /* Free the line with text */
+        free(pstList->pnHead->szLine);
+        pstList->pnHead->szLine = NULL;
+        /* Free the head of the list */
+        free(pstList->pnHead);
+        /* Decrement the node_t counter */
+        pstList->iNodes--;
+        /* Go to the next node */
+        pstList->pnHead = pnTemp;
+        
+    }
+}
+
+/* Print list_t to the console */
+void list_printing(list_t *pstList, char *Szseparator)
+{
+    node_t *pnTemp = pstList->pnHead;
+    /* Print the Title of list */
+    printf("%s",pstList->pszTitle);
+    
+    /* Until we have something to print */
+    while (pnTemp !=NULL)
+    {
+        /* If we at the end of list, we don't need to print the separator*/
+        if (pnTemp->pnNext == NULL) {
+            printf("%s \n", pnTemp->szLine);
+            pnTemp=pnTemp->pnNext;
         }
         else{
-            printf("%s%s",pstHead->string,Szseparator);
-            pstHead=pstHead->pstNext;
+            printf("%s%s",pnTemp->szLine,Szseparator);
+            pnTemp=pnTemp->pnNext;
         }
     }
 }
+
+
+
 
 /* Search for mask in string */
 int SearchForMaskInString(char * szString, regex_t *preg)
 {
     return regexec(preg, szString, 0, NULL, 0);
 }
+
 
 /* Swoping the array */
 void array_swap( char* array, int counter )
@@ -141,6 +212,7 @@ void array_swap( char* array, int counter )
     }
 }
 
+
 /* Read file line by line */
 void* read_file(void *pData)
 {
@@ -152,7 +224,7 @@ void* read_file(void *pData)
     
     
     /* try to open file for reading */
-    if ((file = fopen(pstData->szFilePath, "r")) == NULL)
+    if ((file = fopen(szFilePath, "r")) == NULL)
     {
         /* File cannot be oppened */
         printf("File cannot be oppened");
@@ -162,7 +234,7 @@ void* read_file(void *pData)
     else
     {
         /* scan file from tail? */
-        if (pstData->iScanTail==1)
+        if (iScanTail==1)
         {
             /* Getting file size */
             fseek(file, 0, SEEK_END);
@@ -175,7 +247,7 @@ void* read_file(void *pData)
             while ( lFSize !=0)
             {
                 /* Checking do we still need to work*/
-                if (pstData->max_lines == 1)
+                if (1)
                 {
                     break;
                 }
@@ -190,7 +262,14 @@ void* read_file(void *pData)
                         array_swap(szLine, i);
                         
                         /* Give a signal to other thread for searching */
-                        strcpy(pstData->szLine_for_search,szLine);
+                      //  strcpy(pstData->szLine_for_search,szLine);
+                        pthread_mutex_lock(&mutex_RS);
+                        // Adding new to list
+                        
+                        pthread_mutex_unlock(&mutex_RS);
+                        
+                        
+                        //list_push(, <#char *string#>, <#int flag#>)
                         
                         
                         i=0;
@@ -211,17 +290,16 @@ void* read_file(void *pData)
             while ((iTempForChar = fgetc(file)) != EOF)
             {
                 /* Checking do we still need to work*/
-                if (pstData->max_lines == 1)
-                {
-                    break;
-                }
+                
                 szLine[i] = (char)iTempForChar;
                 if (iTempForChar=='\n')
                 {
                     
                     szLine[i]='\0';
                     /* Give a signal to other thread for searching */
-                    strcpy(pstData->szLine_for_search,szLine);
+                    
+                    
+                    //strcpy(pstData->szLine_for_search,szLine);
                     i = 0;
                 }
                 else
@@ -232,7 +310,7 @@ void* read_file(void *pData)
         }
         
     }
-    pstData->file_end = 1;
+    
     /*  */
     fclose(file);
     return NULL;
@@ -255,6 +333,18 @@ void* search_in_row(void *pData)
     
     while (1)
     {
+        pthread_mutex_lock(mutex_RS);
+        
+        //
+        
+        if (plHead!= NULL) {
+            
+            
+        }
+        
+        pthread_mutex_unlock(mutex_RS);
+        
+        
         strcpy(szLine,pstData->szLine_for_search );
         if ( (pstData->max_lines !=0) || (pstData->file_end !=0) )
         {
@@ -306,7 +396,7 @@ int main(int argc, const char * argv[])
     }
     
     /* Default parammeters set */
-    main_data.iTotallStrings = 0;
+    iTotallStrings = 0;
     main_data.szFilePath = argv[1];
     main_data.szMask = argv[2];
     if (argv[3]) { main_data.iMaxLines = atoi(argv[3]);} else { main_data.iMaxLines = 10000; }
