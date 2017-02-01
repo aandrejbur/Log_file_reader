@@ -23,8 +23,8 @@ pthread_mutex_t mutex_RS, mutex_SW, mutex_CP;
 
 /* Input parameters */
 const char *szMask, *szFilePath, *szSeparator;
-int iScanTail, iMaxLines;
-int iGI,iKi;
+int iScanTail, iMaxLines, iAmount;
+
 
 /* Struct for threads */
 typedef struct comon_data
@@ -54,7 +54,7 @@ void* reader_thread(void *pThreadData)
     
     comon_data_t *pthData = (comon_data_t*)pThreadData;
     node_t *pnTemp = NULL;
-    int i = 0, j = 0;
+    int i = 0, j = 0, direction = 0;;
     FILE *file;
     long lFSize = 0, lBytesToReadOnce = 0;
     char szLine[BIGEST_LINE], *Block = NULL;
@@ -74,6 +74,7 @@ void* reader_thread(void *pThreadData)
     /* if file opened  */
     else
     {
+        direction = iScanTail;
         /* Getting file size */
         fseek(file, 0, SEEK_END);
         lFSize = ftell(file);
@@ -89,7 +90,7 @@ void* reader_thread(void *pThreadData)
             Block = malloc(lFSize);
         }
         /* Where do we need to start */
-        if (iScanTail == 0)
+        if (direction == 0)
         {
             /*   Reading file from the beginig   */
             rewind(file);
@@ -139,11 +140,56 @@ void* reader_thread(void *pThreadData)
         }
         else
         {
+            long lI = 0;
             /* Scaning from the end of file */
+            j = 0;
+            while (lFSize>0)
+            {
+                /* Lets check that we still need to read */
+                pthread_mutex_lock(&mutex_CP);
+                if ((pthData->iMax_lines != 0) || (pthData->iError !=0))
+                {
+                    pthData->iFile_end = 1;
+                    pthread_mutex_unlock(&mutex_CP);
+                    break;
+                }
+                else
+                {
+                    pthread_mutex_unlock(&mutex_CP);
+                }
+                /* and now we will read and scan */
+                fseek(file, -lBytesToReadOnce+1, SEEK_CUR);
+                fread(Block, sizeof(char), lBytesToReadOnce, file);
+                lFSize -=lBytesToReadOnce;
+                
+                
+                /* Scaning block for lines */
+                for (lI = lBytesToReadOnce; lI>0; lI--)
+                {
+                    if ( (szLine[j] = Block[lI]) =='\n')
+                    {
+                        szLine[j]='\0';
+                        array_swap(szLine, j);
+                        /* Creating a new node for this line */
+                        pnTemp = node_init(szLine);
+                        /* Give a signal to other thread for searching */
+                        pthread_mutex_lock(&mutex_RS);
+                        /* Insert the new node in the end of the search queue */
+                        list_tail_add(pthData->plSearchQueue, pnTemp);
+                        /* Unlock the mutex */
+                        pthread_mutex_unlock(&mutex_RS);
+                        j = 0;
+                    }
+                    j++;
+                }
+                if (lFSize<=lBytesToReadOnce)
+                {
+                    lBytesToReadOnce = lFSize;
+                }
+
+            }
             
         }
-        
-        
         /* Give a signal to other thread that file is readed */
         pthread_mutex_lock(&mutex_CP);
         pthData->iFile_end = 1;
@@ -306,6 +352,7 @@ void* writer_thread(void *pThreadData)
             }
         }
     }
+    iAmount = iMaxLines-max_lines;
     return NULL;
 }
 
@@ -317,18 +364,20 @@ int main(int argc, const char * argv[])
     {
         /* Print error: not enaugh input parameters */
         printf("Incoorect input parameters \n");
+        //szFilePath = "log.txt"; szMask = "Net";
         return ERROR;
     }
-    
-    /* Default parammeters set */
-    szFilePath = argv[1]; szMask = argv[2];
+    else {
+        /* Default parammeters set */
+        szFilePath = argv[1]; szMask = argv[2];
+    }
     if (argv[3])
     {
         iMaxLines = atoi(argv[3]);
     }
     else
     {
-        iMaxLines    = 10000;
+        iMaxLines    = 10;
     }
     if (argv[4])
     {
@@ -404,5 +453,8 @@ int main(int argc, const char * argv[])
     /* Destroying everything */
     list_destroy(stThreadData.plWrightQueue);
     list_destroy(stThreadData.plSearchQueue);
+    
+    /* Print that we succsesfully done */
+    printf("\nLog file Readed succesfully, totall amount of lines coresponding to mask: %d\n", iAmount);
     return SUCCESS;
 }
