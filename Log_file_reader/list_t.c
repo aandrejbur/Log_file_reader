@@ -115,7 +115,9 @@ node_t* get_node_top(list_t *pstlist)
     else
     {
         pnTemp = pstlist->pnHead;
+        
         pnTemp->pnNext->pnPrev = NULL;
+        pstlist->pnHead = pnTemp->pnNext;
         pnTemp->pnNext = NULL;
         pstlist->iNodes--;
         return pnTemp;
