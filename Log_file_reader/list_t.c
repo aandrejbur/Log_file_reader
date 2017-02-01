@@ -37,23 +37,25 @@ list_t* list_init()
 {
     list_t *plTemp = malloc(sizeof(list_t));
     plTemp->pnTail = plTemp->pnHead = NULL;
+    plTemp->iNodes = 0;
     return plTemp;
 }
 /* Destroy list_t*/
 int list_destroy(list_t *plList)
 {
-    node_t *pnTemp = NULL;
+    
     if (plList == NULL)
     {
         return ERROR;
     }
+    node_t *pnTemp = NULL;
     while (plList->pnHead!=NULL) {
         pnTemp = plList->pnHead->pnNext;
         destroy_node(plList->pnHead);
         plList->pnHead = pnTemp;
     }
     free(plList);
-    plList=NULL;
+    plList =NULL;
     return SUCCESS;
 }
 /* Adding node to the end of the list_t */

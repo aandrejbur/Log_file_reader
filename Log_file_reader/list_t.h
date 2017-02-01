@@ -31,7 +31,7 @@ typedef struct list
 
 
 /* Create new node_t from string */
-node_t *node_init(char *string);
+node_t* node_init(char *string);
 /* Destroyng the node */
 int destroy_node(node_t *pnNode);
 

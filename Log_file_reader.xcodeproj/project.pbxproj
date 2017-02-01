@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		FD383CB51E407ADA00C4AD76 /* usfull_utilities.c in Sources */ = {isa = PBXBuildFile; fileRef = FD383CB31E407AD900C4AD76 /* usfull_utilities.c */; };
+		FD383CB51E407ADA00C4AD76 /* usefull_utilities.c in Sources */ = {isa = PBXBuildFile; fileRef = FD383CB31E407AD900C4AD76 /* usefull_utilities.c */; };
 		FDF14FE11E3B840500D60789 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = FDF14FE01E3B840500D60789 /* main.c */; };
 		FDFB0A851E3FDB6C002981B4 /* list_t.c in Sources */ = {isa = PBXBuildFile; fileRef = FDFB0A831E3FDB6C002981B4 /* list_t.c */; };
 /* End PBXBuildFile section */
@@ -26,8 +26,8 @@
 
 /* Begin PBXFileReference section */
 		FD1199931E3D53F700DC0F4D /* log.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = log.txt; sourceTree = "<group>"; };
-		FD383CB31E407AD900C4AD76 /* usfull_utilities.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = usfull_utilities.c; sourceTree = "<group>"; };
-		FD383CB41E407ADA00C4AD76 /* usfull_utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = usfull_utilities.h; sourceTree = "<group>"; };
+		FD383CB31E407AD900C4AD76 /* usefull_utilities.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = usefull_utilities.c; sourceTree = "<group>"; };
+		FD383CB41E407ADA00C4AD76 /* usefull_utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = usefull_utilities.h; sourceTree = "<group>"; };
 		FDF14FDD1E3B840500D60789 /* Log_file_reader */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Log_file_reader; sourceTree = BUILT_PRODUCTS_DIR; };
 		FDF14FE01E3B840500D60789 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		FDFB0A831E3FDB6C002981B4 /* list_t.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = list_t.c; sourceTree = "<group>"; };
@@ -68,8 +68,8 @@
 				FD1199931E3D53F700DC0F4D /* log.txt */,
 				FDFB0A831E3FDB6C002981B4 /* list_t.c */,
 				FDFB0A841E3FDB6C002981B4 /* list_t.h */,
-				FD383CB31E407AD900C4AD76 /* usfull_utilities.c */,
-				FD383CB41E407ADA00C4AD76 /* usfull_utilities.h */,
+				FD383CB31E407AD900C4AD76 /* usefull_utilities.c */,
+				FD383CB41E407ADA00C4AD76 /* usefull_utilities.h */,
 			);
 			path = Log_file_reader;
 			sourceTree = "<group>";
@@ -132,7 +132,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FDF14FE11E3B840500D60789 /* main.c in Sources */,
-				FD383CB51E407ADA00C4AD76 /* usfull_utilities.c in Sources */,
+				FD383CB51E407ADA00C4AD76 /* usefull_utilities.c in Sources */,
 				FDFB0A851E3FDB6C002981B4 /* list_t.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
