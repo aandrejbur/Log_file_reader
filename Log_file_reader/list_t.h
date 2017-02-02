@@ -29,28 +29,25 @@ typedef struct list
     struct node_t *pnHead, *pnTail;
 } list_t;
 
-
 /* Create new node_t from string */
 node_t* node_init(char *string);
+
 /* Destroyng the node */
 int destroy_node(node_t *pnNode);
 
 /* List_t initialisation*/
 list_t* list_init();
+
 /* Destroy list_t*/
 int list_destroy(list_t *plList);
 
 /* Adding new node_t to the end of the list_t */
 int list_tail_add(list_t *plList, node_t *pnNode);
+
 /* Adding new node_t to the top of the list_t */
 int list_top_add(list_t *plList, node_t *pnNode);
 
 /* Getting node from tail */
-node_t* get_node_top(list_t *pstlist);
-
-
-
-
-
+node_t* get_node_top(list_t *plList);
 
 #endif /* list_t_h */

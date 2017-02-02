@@ -100,28 +100,27 @@ int list_top_add(list_t *plList, node_t *pnNode)
     return SUCCESS;
 }
 
-node_t* get_node_top(list_t *pstlist)
+node_t* get_node_top(list_t *plList)
 {
     node_t *pnTemp = NULL;
-    if (pstlist->iNodes == 0)
+    if (plList->iNodes == 0)
     {
         return NULL;
     }
-    else if (pstlist->iNodes ==1)
+    else if (plList->iNodes ==1)
     {
-        pnTemp = pstlist->pnHead;
-        pstlist->pnHead = pstlist->pnTail = NULL;
-        pstlist->iNodes--;
+        pnTemp = plList->pnHead;
+        plList->pnHead = plList->pnTail = NULL;
+        plList->iNodes--;
         return pnTemp;
     }
     else
     {
-        pnTemp = pstlist->pnHead;
-        
+        pnTemp = plList->pnHead;
         pnTemp->pnNext->pnPrev = NULL;
-        pstlist->pnHead = pnTemp->pnNext;
+        plList->pnHead = pnTemp->pnNext;
         pnTemp->pnNext = NULL;
-        pstlist->iNodes--;
+        plList->iNodes--;
         return pnTemp;
     }
 }

@@ -12,6 +12,7 @@ char *rus[] ={
     "Не программируй то, что может принести вред другим. Ибо встав раз на путь дьявола - на нем и останешься.",
     "Не завидуй ближнему твоему, если он умеет лучше программировать. Ибо программирование - это божественный дар, но его можно развить. Так что не завидуй, а развивай.",
 };
+
 char *eng[] = {
     "Thou shalt run lint frequently and study its pronouncements with care, for verily its perception and judgement oft exceed thine.",
     "Thou shalt not follow the NULL pointer, for chaos and madness await thee at its end.",
@@ -40,7 +41,6 @@ void file_create(int iSize){
             sprintf(szLine, "Строка: %d Заповедь %d: %s \n",lLines+1,iLineNumber+1, rus[iLineNumber]);
             fprintf(file, "%s", szLine);
             lLines++;
-            
         }
         /* ENG */
         for (iLineNumber = 0; iLineNumber<10; iLineNumber++)
@@ -49,7 +49,6 @@ void file_create(int iSize){
             fprintf(file, "%s", szLine);
             lLines++;
         }
-        
     }
     fclose(file);
 }

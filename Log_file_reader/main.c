@@ -5,18 +5,9 @@
 #include "list_t.h"
 #include "usefull_utilities.h"
 
-/* ./execute file_path -mask max_lines scan_tail output(1-file, 0-console) separator */
-
 /* Block size to read = 4MB */
 #define BLOCK_SIZE 4194304
 #define BIGEST_LINE 2048
-
-/* Codes to end program */
-#define FILE_END    10
-#define MAX_LINES   20
-
-/* The answer to main question */
-#define STOP        42
 
 /* Input parameters */
 char *szMask, *szFilePath, *szSeparator;
@@ -32,7 +23,6 @@ typedef struct comon_data
     list_t *plSearchQueue, *plWrightQueue;
     /* Flags for stoping the process */
     int iFile_end, iMax_lines, Search_is_done, iError;
-    
 } comon_data_t;
 
 /* Search for mask in string, Return 0 if finded*/
@@ -41,10 +31,9 @@ int SearchForMaskInString(char * szString, regex_t *preg)
     return regexec(preg, szString, 0, NULL, REG_EXTENDED);
 }
 
-/* Parcing input parammeters */
+/* Parse input parammeters */
 int start_patameters_parsing(const char* argv)
 {
-    //char szLineTemp[512];
     if (argv == NULL)
     {
         return ERROR;
@@ -63,12 +52,10 @@ int start_patameters_parsing(const char* argv)
                 case 'f':
                     szFilePath = malloc(strlen(argv));
                     sprintf(szFilePath,"%s",argv+3);
-                    //memmove(szFilePath, argv+3,strlen(argv)-2);
                     break;
                 case 'm':
                     szMask = malloc(strlen(argv));
                     sprintf(szMask,"%s",argv+3);
-                    //memmove(szMask, argv+3,strlen(argv)-2);
                     break;
                 case 'c':
                     iMaxLines = atoi((argv+3));
@@ -82,7 +69,6 @@ int start_patameters_parsing(const char* argv)
                 case 's':
                     szSeparator = malloc(strlen(argv));
                     sprintf(szSeparator,"%s",argv+3);
-                    //memmove(szSeparator, argv+3,strlen(argv)-2);
                     break;
                 case 'h':
                     printf("Programm call syntax: ./log_reader -f='FILE_PATH' -m='MASK' -c='MAX LINES'(default 10000) \n");
@@ -92,7 +78,7 @@ int start_patameters_parsing(const char* argv)
                     printf("                                             -o=0 - Print output data on screen \n");
                     printf("                      -s='SEPARATOR' default separator: '\\n' \n");
                     printf("                      -h - help \n");
-                    return SUCCESS;
+                    break;
                 default:
                     break;
             }
@@ -107,9 +93,9 @@ void* reader_thread(void *pThreadData)
 {
     comon_data_t *pthData = (comon_data_t*)pThreadData;
     node_t *pnTemp = NULL;
-    int i = 0, j = 0, direction = 0, search_can_start = 0, counter = 0;
+    int i = 0, j = 0, iDirection = 0, iCounter = 0,iSearchCanWork = 0;
     FILE *file;
-    long lFSize = 0, lBytesToReadOnce = 0;
+    long lFSize = 0, lBytesToReadOnce = 0, lI = 0;
     char szLine[BIGEST_LINE], *Block = NULL;
     
     /* try to open file for reading */
@@ -126,11 +112,16 @@ void* reader_thread(void *pThreadData)
     /* if file opened  */
     else
     {
-        //--------pthread_mutex_lock(&pthData->mutex_RS);
-        direction = iScanTail;
+        /* Lock the mutex so the search thread will have to wait */
+        pthread_mutex_lock(&mutex_RS);
+        
+        /* Getting the scan direction */
+        iDirection = iScanTail;
+        
         /* Getting file size */
         fseek(file, 0, SEEK_END);
         lFSize = ftell(file);
+        
         /* We determine how many bytes we read at a time */
         if (lFSize>BLOCK_SIZE)
         {
@@ -142,13 +133,16 @@ void* reader_thread(void *pThreadData)
             lBytesToReadOnce = lFSize;
             Block = malloc(lFSize +1 );
         }
+        
         /* Where do we need to start */
-        if (direction == 0)
+        if (iDirection == 0)
         {
             /*   Reading file from the beginig   */
             rewind(file);
+            
             /*Position in the readed line*/
             j = 0;
+            
             /* Let's read! */
             while (lFSize>0)
             {
@@ -156,54 +150,70 @@ void* reader_thread(void *pThreadData)
                 pthread_mutex_lock(&mutex_CP);
                 if (pthData->iMax_lines != 0)
                 {
+                    /* If we have all the lines we need */
                     pthData->iFile_end = 1;
                     pthread_mutex_unlock(&mutex_CP);
+                    
+                    /* Stop the reader */
                     break;
                 }
                 else
                 {
                     pthread_mutex_unlock(&mutex_CP);
                 }
+                
                 /* and now we will read and scan */
                 fread(Block, sizeof(char), lBytesToReadOnce, file);
                 lFSize -= lBytesToReadOnce;
+                
                 /* Scaning block for lines */
                 for (i = 0; i<lBytesToReadOnce; i++)
                 {
                     if ( (szLine[j] = Block[i]) =='\n')
                     {
                         szLine[j]='\0';
+                       
                         /* Creating a new node for this line */
                         pnTemp = node_init(szLine);
                         
-                        //-----if (search_can_start == 0)
-                        //-----{
-                        //------    pthread_mutex_unlock(&pthData->mutex_RS);
-                        //------search_can_start++;
-                        //------}
-                        /* Give a signal to other thread for searching */
+                        /* Checking and unleashing the searcher thread*/
+                        if (iSearchCanWork == 0)
+                        {
+                            pthread_mutex_unlock(&mutex_RS);
+                            iSearchCanWork++;
+                        }
+                        
+                        /* Transfer a new node to the search queue */
                         pthread_mutex_lock(&mutex_RS);
+                        
                         /* Insert the new node in the end of the search queue */
                         list_tail_add(pthData->plSearchQueue, pnTemp);
                         /*Taking totall amount of nodes in search*/
-                        counter =pthData->plSearchQueue->iNodes;
+                        iCounter =pthData->plSearchQueue->iNodes;
+                        
                         /* Unlock the mutex */
                         pthread_mutex_unlock(&mutex_RS);
+                        
+                        /* position in line to 0 */
                         j = 0;
-                        if (counter>10000)
+                        
+                        /* Give a break to the search thread, if there is too many nodes in queue */
+                        if (iCounter>10000)
                         {
-                            for (counter = 0; counter<100000; counter++)
+                            for (iCounter = 0; iCounter<10000; iCounter++)
                             {
-                                counter++;
-                                counter--;
+                                iCounter++;
+                                iCounter--;
                             }
                         }
                     }
                     else
                     {
+                        /* increment line position */
                         j++;
                     }
                 }
+                /* if unread file size is smaller than a block */
                 if (lFSize<=lBytesToReadOnce)
                 {
                     lBytesToReadOnce = lFSize;
@@ -212,11 +222,11 @@ void* reader_thread(void *pThreadData)
         }
         else
         {
-            long lI = 0;
             /* Scaning from the end of file */
             j = 0;
-            while (lFSize>0)
+            while (1)
             {
+                
                 /* Lets check that we still need to read */
                 pthread_mutex_lock(&mutex_CP);
                 if ((pthData->iMax_lines != 0) || (pthData->iError !=0))
@@ -229,10 +239,13 @@ void* reader_thread(void *pThreadData)
                 {
                     pthread_mutex_unlock(&mutex_CP);
                 }
+                
                 /* and now we will read and scan */
+
                 fseek(file, -lBytesToReadOnce, SEEK_CUR);
                 fread(Block, sizeof(char), lBytesToReadOnce, file);
                 lFSize -= lBytesToReadOnce;
+                
                 /* Scaning block for lines */
                 for (lI = lBytesToReadOnce-1; lI>=0; lI--)
                 {
@@ -240,22 +253,39 @@ void* reader_thread(void *pThreadData)
                     {
                         szLine[j]='\0';
                         array_swap(szLine, &j);
+                       
                         /* Creating a new node for this line */
                         pnTemp = node_init(szLine);
                         
-                       //------ if (search_can_start == 0)
-                       //------ {
-                      //------      pthread_mutex_unlock(&pthData->mutex_RS);
-                       //------     search_can_start++;
-                      //------  }
+                        /* Checking and unleashing the searcher thread*/
+                        if (iSearchCanWork == 0)
+                        {
+                            pthread_mutex_unlock(&mutex_RS);
+                            iSearchCanWork++;
+                        }
                         
                         /* Give a signal to other thread for searching */
                         pthread_mutex_lock(&mutex_RS);
+                        
                         /* Insert the new node in the end of the search queue */
                         list_tail_add(pthData->plSearchQueue, pnTemp);
+                        
+                        /*Taking totall amount of nodes in search*/
+                        iCounter =pthData->plSearchQueue->iNodes;
+                        
                         /* Unlock the mutex */
                         pthread_mutex_unlock(&mutex_RS);
                         j = 0;
+                        
+                        /* Give a break to the search thread, if there is too many nodes in queue */
+                        if (iCounter>10000)
+                        {
+                            for (iCounter = 0; iCounter<10000; iCounter++)
+                            {
+                                iCounter++;
+                                iCounter--;
+                            }
+                        }
                     }
                     else
                     {
@@ -266,17 +296,24 @@ void* reader_thread(void *pThreadData)
                 {
                     lBytesToReadOnce = lFSize;
                 }
+                if (lFSize==0)
+                {
+                    break;
+                }
             }
         }
+        
         /* Give a signal to other thread that file is readed */
         pthread_mutex_lock(&mutex_CP);
         pthData->iFile_end = 1;
         pthread_mutex_unlock(&mutex_CP);
+        
         /* Unlocking the mutex, if there was nothing to search */
-       //------ if (search_can_start==0)
-     //------   {
-     //------       pthread_mutex_unlock(&pthData->mutex_RS);
-     //------   }
+        if (iSearchCanWork==0)
+        {
+            pthread_mutex_unlock(&mutex_RS);
+        }
+        
         /* Close the file */
         fclose(file);
         /* Free the memory */
@@ -290,13 +327,13 @@ void* search_thread(void *pThreadData)
     comon_data_t *pthData = (comon_data_t*)pThreadData;
     node_t *pnTemp = NULL;
     regex_t preg;
-    int search = 0;
+    int iSearch = 0,iWriterCanWork = 0;
     long lLength = 0;
-    //------pthread_mutex_lock(&pthData->mutex_SW);
+    pthread_mutex_lock(&mutex_SW);
     
+    /* Creating a simpl regular expression */
     lLength = strlen(szMask);
     char *szMask_temp = malloc(lLength+3);
-    
     if (szMask[0]=='*')
     {
         sprintf(szMask_temp,"%s", szMask+1);
@@ -325,12 +362,10 @@ void* search_thread(void *pThreadData)
     else
     {
         szMask_temp[lLength]=' ';
-        //szMask_temp[lLength+1]='\0';
         lLength++;
     }
-    //strncat(szMask_temp, szMask, strlen(szMask));
+    
     /* Compiling regular expression */
-    //iLength = strlen(szMask_temp);
     if ((regcomp(&preg, szMask_temp, 0))!=0 )
     {
         /* Cannot compile regular expression */
@@ -338,12 +373,13 @@ void* search_thread(void *pThreadData)
         pthread_mutex_lock(&mutex_CP);
         pthData->iError = 1;
         pthread_mutex_unlock(&mutex_CP);
-       //------ if (writer_can_work==0)
-       //------ {
-       //------     pthread_mutex_unlock(&pthData->mutex_SW);
-       //------     printf("Searcher give the right to writer to work 0 -end \n");
-        //------    writer_can_work++;
-       //------ }
+        
+        /* Check and unleashing the Writer Thread*/
+        if (iWriterCanWork==0)
+        {
+            pthread_mutex_unlock(&mutex_SW);
+            iWriterCanWork++;
+        }
         return NULL;
     }
     while (1)
@@ -352,53 +388,57 @@ void* search_thread(void *pThreadData)
         pthread_mutex_lock(&mutex_RS);
         if (pthData->plSearchQueue->iNodes > 0)
         {
-            search=1;
+            iSearch=1;
             pnTemp=get_node_top(pthData->plSearchQueue);
         }
         pthread_mutex_unlock(&mutex_RS);
         /* If we have the line for search */
-        if (search==1)
+        if (iSearch==1)
         {
             /* let's search in the line */
             if (SearchForMaskInString(pnTemp->szLine,&preg) == 0)
             {
-              //------  if (writer_can_work == 0)
-            //------    {
-             //------       printf("Searcher give the right to writer to work 1 -end \n");
-             //------       pthread_mutex_unlock(&pthData->mutex_SW);
-            //------        writer_can_work++;
-            //------    }
+                /* Check and unleashing the Writer Thread*/
+                if (iWriterCanWork == 0)
+                {
+                    pthread_mutex_unlock(&mutex_SW);
+                    iWriterCanWork++;
+                }
+                
                 /* if we found something */
                 pthread_mutex_lock(&mutex_SW);
+                
                 /* send the line to writer queue */
                 list_tail_add(pthData->plWrightQueue, pnTemp);
                 pnTemp = NULL;
                 pthread_mutex_unlock(&mutex_SW);
-                search=0;
+                iSearch=0;
             }
             else
             {
                 /* nothing we need is in this line, let's destroy it */
                 destroy_node(pnTemp);
                 pnTemp=NULL;
-                search=0;
+                iSearch=0;
             }
         }
         /* if we have nothing to do, lets check that we still need to work */
-        else if (search == 0)
+        else if (iSearch == 0)
         {
             /* a check if the file have ended or we have all needed lines */
             pthread_mutex_lock(&mutex_CP);
             if ( (pthData->iFile_end!=0) || (pthData->iMax_lines!=0) || (pthData->iError!=0))
             {
+                /* There is nthing else we can do */
                 pthData->Search_is_done = 1;
                 pthread_mutex_unlock(&mutex_CP);
-               //------ if (writer_can_work==0)
-              //------  {
-              //------      printf("Searcher give the right to writer to work 4 -end \n");
-              //------      pthread_mutex_unlock(&pthData->mutex_SW);
-              //------      writer_can_work++;
-              //------  }
+                
+                /* Check and unleashing the Writer Thread*/
+                if (iWriterCanWork==0)
+                {
+                    pthread_mutex_unlock(&mutex_SW);
+                    iWriterCanWork++;
+                }
                 break;
             }
             else
@@ -408,13 +448,11 @@ void* search_thread(void *pThreadData)
         }
     }
     /* Unlocking the Search->write mutex if there was nothing to write */
-    //------if (writer_can_work==0)
-   //------ {
-        //------printf("Searcher give the right to writer to work 3 -end \n");
-        //------pthread_mutex_unlock(&pthData->mutex_SW);
-        //------writer_can_work++;
-    //------}
-    printf("Searcher -end \n");
+    if (iWriterCanWork==0)
+    {
+        pthread_mutex_unlock(&mutex_SW);
+        iWriterCanWork++;
+    }
     free(szMask_temp);
     regfree(&preg);
     return NULL;
@@ -426,7 +464,10 @@ void* writer_thread(void *pThreadData)
     int write = 0, max_lines = 0, first = 0;
     node_t *pnTemp = NULL;
     FILE *file = NULL;
-    if (iOut!=0) {
+    
+    /* Check the output*/
+    if (iOut!=0)
+    {
         file = fopen("Result.txt", "w+");
         fprintf(file,"Lines coresponding to mask '%s': \n",szMask);
         printf("Output data in Result.txt \n");
@@ -446,9 +487,11 @@ void* writer_thread(void *pThreadData)
         
         }
         pthread_mutex_unlock(&mutex_SW);
+        
         /* If we have something to write */
         if (write>0)
         {
+            /*If it's a first line, we don't need separator*/
             if (first == 0)
             {
                 if (iOut!=0)
@@ -508,6 +551,7 @@ void* writer_thread(void *pThreadData)
            }
         }
     }
+    /* Counting amount of lines */
     iAmount = iMaxLines-max_lines;
     if (iOut!=0)
     {
@@ -521,7 +565,6 @@ void* writer_thread(void *pThreadData)
         /* Print that we succsesfully done */
         printf("\nLog file Readed succesfully, totall amount of lines coresponding to mask: %d\n", iAmount);
     }
-    printf("Writer -end \n");
     return NULL;
 }
 
@@ -531,14 +574,8 @@ int main(int argc, const char * argv[])
     if (argc==1)
     {
         printf("Start without parammeters create 2GB File 'Programmer_Commandments.txt' \n");
-        //file_create(85000);
-        ///return SUCCESS;
-        /* Test parameters set for xcode */
-        szFilePath = "Programmer_Commandments.txt"; szMask = "hou";
-        iMaxLines    = 10000;
-        iScanTail    = 1;
-        iOut = 1;
-        szSeparator  = "\n";
+        file_create(8500000);
+        return SUCCESS;
     }
     else {
         int i = 0;
@@ -550,20 +587,18 @@ int main(int argc, const char * argv[])
                 return ERROR;
             }
         }
-        //szFilePath = argv[1]; szMask = argv[2];
         if ( !iMaxLines ){ iMaxLines = 10000;     }
         if ( !iScanTail ){ iScanTail = 0;         }
         /* Default output - screen */
         if ( !iOut ){ iOut =  0;                  }
         if ( !szSeparator ){ szSeparator  = "\n\0"; }
     }
+    
     /* Common data structure for threads */
     comon_data_t stThreadData = {list_init(), list_init(), 0,0,0,0};
 
     /* Initialisation of mutexes */
-    pthread_mutex_init(&mutex_SW, NULL);
-    pthread_mutex_init(&mutex_RS, NULL);
-    pthread_mutex_init(&mutex_CP,NULL);
+    pthread_mutex_init(&mutex_SW, NULL); pthread_mutex_init(&mutex_RS, NULL); pthread_mutex_init(&mutex_CP,NULL);
     
     /* Pointers to threads */
     pthread_t pthReader, pthSearcher, pthWriter;
@@ -584,22 +619,20 @@ int main(int argc, const char * argv[])
         printf("Cannot creat thread for write");
         return ERROR;
     }
+    
     /* wait until all threads are stopped */
     pthread_join(pthReader, NULL);
     pthread_join(pthSearcher, NULL);
     pthread_join(pthWriter, NULL);
 
     /* Destroying mutexes */
-    pthread_mutex_destroy(&mutex_RS);
-    pthread_mutex_destroy(&mutex_SW);
-    pthread_mutex_destroy(&mutex_CP);
+    pthread_mutex_destroy(&mutex_RS); pthread_mutex_destroy(&mutex_SW); pthread_mutex_destroy(&mutex_CP);
     
     /* Destroying everything */
-    list_destroy(stThreadData.plWrightQueue);
-    list_destroy(stThreadData.plSearchQueue);
-    //free(szFilePath);szFilePath=NULL;
-    //free(szMask);szMask=NULL;
+    list_destroy(stThreadData.plWrightQueue); list_destroy(stThreadData.plSearchQueue);
+    free(szFilePath);szFilePath=NULL; free(szMask);szMask=NULL;
     
+    /* if it's not a default separator, we will need to free him*/
     if ( strcmp(szSeparator, "\n\0") != 0)
     {
         free(szSeparator);szSeparator=NULL;
