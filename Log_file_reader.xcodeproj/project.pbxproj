@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		FD383CB51E407ADA00C4AD76 /* usefull_utilities.c in Sources */ = {isa = PBXBuildFile; fileRef = FD383CB31E407AD900C4AD76 /* usefull_utilities.c */; };
-		FDD80AA11E42B29500DE961E /* makefile in Sources */ = {isa = PBXBuildFile; fileRef = FDD80AA01E42B29500DE961E /* makefile */; };
+		FD61C53B1E462F0F00E15C9E /* search_lib.c in Sources */ = {isa = PBXBuildFile; fileRef = FD61C5391E462F0F00E15C9E /* search_lib.c */; };
 		FDF14FE11E3B840500D60789 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = FDF14FE01E3B840500D60789 /* main.c */; };
 		FDFB0A851E3FDB6C002981B4 /* list_t.c in Sources */ = {isa = PBXBuildFile; fileRef = FDFB0A831E3FDB6C002981B4 /* list_t.c */; };
 /* End PBXBuildFile section */
@@ -29,7 +29,8 @@
 		FD1199931E3D53F700DC0F4D /* log.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = log.txt; sourceTree = "<group>"; };
 		FD383CB31E407AD900C4AD76 /* usefull_utilities.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = usefull_utilities.c; sourceTree = "<group>"; };
 		FD383CB41E407ADA00C4AD76 /* usefull_utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = usefull_utilities.h; sourceTree = "<group>"; };
-		FDD80AA01E42B29500DE961E /* makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
+		FD61C5391E462F0F00E15C9E /* search_lib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = search_lib.c; sourceTree = "<group>"; tabWidth = 3; };
+		FD61C53A1E462F0F00E15C9E /* search_lib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = search_lib.h; sourceTree = "<group>"; };
 		FDD80AA21E42B2E000DE961E /* README.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.txt; sourceTree = "<group>"; };
 		FDF14FDD1E3B840500D60789 /* Log_file_reader */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Log_file_reader; sourceTree = BUILT_PRODUCTS_DIR; };
 		FDF14FE01E3B840500D60789 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
@@ -67,7 +68,6 @@
 		FDF14FDF1E3B840500D60789 /* Log_file_reader */ = {
 			isa = PBXGroup;
 			children = (
-				FDD80AA01E42B29500DE961E /* makefile */,
 				FDF14FE01E3B840500D60789 /* main.c */,
 				FD1199931E3D53F700DC0F4D /* log.txt */,
 				FDFB0A831E3FDB6C002981B4 /* list_t.c */,
@@ -75,6 +75,8 @@
 				FD383CB31E407AD900C4AD76 /* usefull_utilities.c */,
 				FD383CB41E407ADA00C4AD76 /* usefull_utilities.h */,
 				FDD80AA21E42B2E000DE961E /* README.txt */,
+				FD61C5391E462F0F00E15C9E /* search_lib.c */,
+				FD61C53A1E462F0F00E15C9E /* search_lib.h */,
 			);
 			path = Log_file_reader;
 			sourceTree = "<group>";
@@ -138,8 +140,8 @@
 			files = (
 				FDF14FE11E3B840500D60789 /* main.c in Sources */,
 				FD383CB51E407ADA00C4AD76 /* usefull_utilities.c in Sources */,
-				FDD80AA11E42B29500DE961E /* makefile in Sources */,
 				FDFB0A851E3FDB6C002981B4 /* list_t.c in Sources */,
+				FD61C53B1E462F0F00E15C9E /* search_lib.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

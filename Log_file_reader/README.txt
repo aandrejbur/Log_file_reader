@@ -41,12 +41,30 @@
 -s='separator' - разделитель результирующих строк поиска (по умолчанию добавляется '\n')
 -h 			   - Вывод помощи и инструкции на экран.
 
-
-Программу писал 3 вечера, по несколько часов, в сумме справился бы за один полный рабочий день.
-
-Еще раз извиняюсь что затянул со сроками здачи и не выслал к понедельнику, действительно не было возможности на выходных уделить время.
-
 Большое спасибо за интересное задание.
 
 С уважением, Буренков Андрей Радикович.
 +375 (33) 632-42-78
+
+
+
+
+CC 			= 	gcc -pthread
+CFLAGS 		= 	-Wall
+LDFLAGS 	=   # linking flags
+SOURCES 	= 	main.c list_t.c usefull_utilities.c
+OBJECTS 	= 	$(SOURCES:.c=.o)
+EXECUTABLE 	= 	log_reader
+
+.PHONY: all
+all:  $(SOURCES) $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS)
+$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+
+.cpp.o: \
+$(CC) $(CFLAGS) $< -o $@
+
+.PHONY:	clean
+clean:
+rm -rf *.o  log_reader
