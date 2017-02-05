@@ -1,18 +1,5 @@
 #include "usefull_utilities.h"
 
-char *rus[] ={
-    "Программирование - твоя главная страсть. И да не будет у тебя страсти главней.",
-    "Не сотвори себе кумира из конкретной технологии. Ибо программирование требует постоянного развития, а технологии-кумиры останавливают развитие.",
-    "Не возноси хвальбу программированию в неподходящей компании. Ты сам себя накажешь, ибо будешь не понят, и люди отвернутся от тебя.",
-    "Работай много и хорошо, но не забывай и про отдых. Ибо нет ничего страшнее, чем код усталого, засыпающего программиста.",
-    "Уважай учителей и учеников своих. Постоянно учись и учи окружающих, чтобы было тебе всё легче и легче делать всё более и более сложные вещи.",
-    "Не убий в себе ребенка. Не забывай эмоции от первого запуска первой написанной тобой программы и воспринимай каждую следующую, как ту - первую.",
-    "Не изменяй программированию. Ибо программист может стать кем угодно, но этот кто угодно обратно программистом уже не станет.",
-    "Не кради код ближнего своего.",
-    "Не программируй то, что может принести вред другим. Ибо встав раз на путь дьявола - на нем и останешься.",
-    "Не завидуй ближнему твоему, если он умеет лучше программировать. Ибо программирование - это божественный дар, но его можно развить. Так что не завидуй, а развивай.",
-};
-
 char *eng[] = {
     "Thou shalt run lint frequently and study its pronouncements with care, for verily its perception and judgement oft exceed thine.",
     "Thou shalt not follow the NULL pointer, for chaos and madness await thee at its end.",
@@ -27,25 +14,25 @@ char *eng[] = {
 };
 
 /* Printing a big true file */
-void file_create(int iSize){
+void file_create(long iSize){
     FILE *file = NULL;
-    int lLines = 0;
+    long lLines = 0;
     file = fopen("Programmer_Commandments.txt", "w+");
-    char szLine[1024];
+    char szLine[2024];
     int iLineNumber = 0;
     while (lLines < iSize)
     {
-        /* RUS */
-        for (iLineNumber = 0; iLineNumber<10; iLineNumber++)
+        /* Forward */
+        for (iLineNumber = 0; iLineNumber<=10; iLineNumber++)
         {
-            sprintf(szLine, "Строка: %d Заповедь %d: %s \n",lLines+1,iLineNumber+1, rus[iLineNumber]);
+            sprintf(szLine, "Line: %ld Commandment %d: %s \n",lLines+1,iLineNumber+1, eng[iLineNumber]);
             fprintf(file, "%s", szLine);
             lLines++;
         }
-        /* ENG */
-        for (iLineNumber = 0; iLineNumber<10; iLineNumber++)
+        /* Backward */
+        for (iLineNumber = 9; iLineNumber>=0; iLineNumber--)
         {
-            sprintf(szLine, "Line: %d Commandment %d: %s \n",lLines+1,iLineNumber+1, eng[iLineNumber]);
+            sprintf(szLine, "Line: %ld Commandment %d: %s \n",lLines+1,iLineNumber, eng[iLineNumber]);
             fprintf(file, "%s", szLine);
             lLines++;
         }
@@ -53,16 +40,27 @@ void file_create(int iSize){
     fclose(file);
 }
 
-/* Swoping the array */
+/* Array swap function */
 void array_swap( char* array, int *counter )
 {
     char cTempC;
     int i;
-    
     for (i = 0; i < *counter/2; i++)
     {
         cTempC = array[i];
         (array[i]) = (char)(array[*counter-1-i]);
         array[*counter-1-i]=cTempC;
     }
+}
+
+/* Print help information */
+void print_help()
+{
+    printf("Programm call syntax: ./log_reader -f='FILE_PATH' -m='MASK' -c='MAX LINES'(default 10000) \n");
+    printf("                      -d='1(0)'File scan direction: -d=1 - from tail\n");
+    printf("                                                    -d=2 - from the begining (default) \n");
+    printf("                      -o='1(0)' output type: -o=1 - Save output data in file: 'Result.txt' \n");
+    printf("                                             -o=0 - Print output data on screen \n");
+    printf("                      -s='SEPARATOR' default separator: '\\n' \n");
+    printf("                      -h - help \n");
 }

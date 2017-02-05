@@ -5,16 +5,23 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* Return flags */
 #define FOUND 42
 #define NOT_FOUND 0
 
+/* Pointer to search function */
 typedef int (search_function)( char* szline, void *psSearch );
 
-typedef struct search_t{
-    int iMode, iLength;
+/* A structure for search */
+typedef struct search_t
+{
+    /* Length of the mask */
+    int iLength;
+    /* Mask for search */
     char *szMask;
+    /* A pointer to the search function */
     search_function *search;
-}search_t;
+} search_t;
 
 /* Search functions coresponding to mask */
 /* *mask* */
@@ -39,7 +46,10 @@ int search_mode_8(char* szLine, void *psSearch);
 /* Create a structure for Search */
 search_t* compile_search_expression(char* szMask);
 
+/* Destroy search_t structure */
+void search_destroy(search_t *psSearch);
 
+/* Compare a symbol to the common symbols */
 int compare_symbol_to_common_symbols(char *Symbol);
 
 #endif /* search_lib_h */
