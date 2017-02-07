@@ -7,8 +7,8 @@ node_t *node_init(char *string)
     {
         node_t *pnNode = malloc(sizeof(node_t));
         pnNode->pnNext = pnNode->pnPrev = NULL;
-        pnNode->szLine = malloc(strlen(string)+1);
-        strcpy(pnNode->szLine, string);
+        pnNode->szLine = malloc(strlen(string)+2);
+        strncpy(pnNode->szLine, string,strlen(string)+1);
         return pnNode;
     }
     else

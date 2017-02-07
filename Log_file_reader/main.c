@@ -3,18 +3,18 @@
 #include <semaphore.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
 
 /* Include own libraries */
 #include "list_t.h"
 #include "usefull_utilities.h"
 #include "search_lib.h"
 
-
 /* Block size to read = 4MB */
 #define BLOCK_SIZE 4194304
 
 /* Size of the biggest line for read */
-#define BIGEST_LINE 4096
+#define BIGEST_LINE 8192
 
 #define HELP 911
 
@@ -25,8 +25,8 @@ int iScanTail, iMaxLines, iAmount, iOut;
 /* Global mutexes: 1 - read->search mutex, 2 - search->write mutex, 3 - common parameters mutex  */
 pthread_mutex_t mutex_RS, mutex_SW, mutex_CP;
 
-/* A semaphores for search and write */
-sem_t semafor_RS, semafor_SW;
+/* Global semaphores: 1 - read->search semaphores, 2 - search->write semaphores, 3 - common parameters semaphores  */
+sem_t semaphor_RS, semaphor_SW, semaphor_CP;
 
 /* Struct for threads */
 typedef struct comon_data
@@ -51,6 +51,15 @@ int start_parameters_parsing(const char* argv)
         if (argv[0]!= '-')
         {
             printf("Each option must start with '-' symbol!!!\n");
+            return ERROR;
+        }
+        else if (argv[1]=='h')
+        {
+            return HELP;
+        }
+        else if (argv[2]=='\0' || argv[3]=='\0')
+        {
+            printf("Incorrect option!\n");
             return ERROR;
         }
         else
@@ -78,8 +87,6 @@ int start_parameters_parsing(const char* argv)
                     szSeparator = malloc(strlen(argv)-2);
                     sprintf(szSeparator,"%s",argv+3);
                     break;
-                case 'h':
-                    return HELP;
                 default:
                     printf("Incorrect option!\n");
                     return ERROR;
@@ -87,6 +94,22 @@ int start_parameters_parsing(const char* argv)
         }
     }
     return SUCCESS;
+}
+
+/* Function to safe free all the parameters */
+void safe_exit()
+{
+    if (szFilePath)
+    {
+        free(szFilePath);
+    }
+    if (szMask) {
+        free(szMask);
+    }
+    if ((szSeparator) && (strcmp(szSeparator, "\n\0") != 0)) {
+        free(szSeparator);
+    }
+
 }
 
 /* Tread Functions: */
@@ -110,7 +133,8 @@ void* reader_thread(void *pThreadData)
         pthData->iError = 1;
         pthread_mutex_unlock(&mutex_CP);
         /* Posting searcher semaphore */
-        sem_post(&semafor_RS);
+        sem_post(&semaphor_RS);
+        sem_post(&semaphor_CP);
         return NULL;
     }
     /* if file opened  */
@@ -145,21 +169,23 @@ void* reader_thread(void *pThreadData)
             while (lFSize>0)
             {
                 /* Lets check that we still need to read */
-                pthread_mutex_lock(&mutex_CP);
-                if (pthData->iMax_lines != 0)
+                if (sem_trywait(&semaphor_CP) == 0)
                 {
-                    /* If we have all the lines we need */
-                    pthData->iFile_end = 1;
-                    pthread_mutex_unlock(&mutex_CP);
-                    
-                    /* Stop the reader */
-                    break;
+                    pthread_mutex_lock(&mutex_CP);
+                    if ( (pthData->iMax_lines != 0) || (pthData->iError!=0) )
+                    {
+                        /* If we have all the lines we need */
+                        pthData->iFile_end = 1;
+                        pthread_mutex_unlock(&mutex_CP);
+                        sem_post(&semaphor_CP);
+                        /* Stop the reader */
+                        break;
+                    }
+                    else
+                    {
+                        pthread_mutex_unlock(&mutex_CP);
+                    }
                 }
-                else
-                {
-                    pthread_mutex_unlock(&mutex_CP);
-                }
-                
                 /* and now we will read and scan */
                 fread(Block, sizeof(char), lBytesToReadOnce, file);
                 
@@ -186,7 +212,7 @@ void* reader_thread(void *pThreadData)
                         iCounter =pthData->plSearchQueue->iNodes;
                         
                         /* Increase the searcher semaphore */
-                        sem_post(&semafor_RS);
+                        sem_post(&semaphor_RS);
                         
                         /* Unlock the mutex */
                         pthread_mutex_unlock(&mutex_RS);
@@ -199,6 +225,8 @@ void* reader_thread(void *pThreadData)
                         {
                             usleep(1000);
                         }
+                        
+                        
                     }
                     else
                     {
@@ -223,18 +251,24 @@ void* reader_thread(void *pThreadData)
             while (1)
             {
                 /* Lets check that we still need to read */
-                pthread_mutex_lock(&mutex_CP);
-                if ((pthData->iMax_lines != 0) || (pthData->iError !=0))
+                if (sem_trywait(&semaphor_CP) == 0)
                 {
-                    pthData->iFile_end = 1;
-                    pthread_mutex_unlock(&mutex_CP);
-                    break;
+                    pthread_mutex_lock(&mutex_CP);
+                    if ( (pthData->iMax_lines != 0) || (pthData->iError!=0) )
+                    {
+                        /* If we have all the lines we need */
+                        pthData->iFile_end = 1;
+                        pthread_mutex_unlock(&mutex_CP);
+                        sem_post(&semaphor_CP);
+                        /* Stop the reader */
+                        break;
+                    }
+                    else
+                    {
+                        pthread_mutex_unlock(&mutex_CP);
+                    }
                 }
-                else
-                {
-                    pthread_mutex_unlock(&mutex_CP);
-                }
-                
+
                 /* and now we will read and scan */
                 iPosition += lBytesToReadOnce;
                 fseek(file, -iPosition, SEEK_END);
@@ -246,9 +280,9 @@ void* reader_thread(void *pThreadData)
                 {
                     if ( (szLine[j] = Block[lI]) =='\n')
                     {
-                        szLine[j]='\0';
+                        
                         array_swap(szLine, &j);
-                       
+                        szLine[j]=0;
                         /* Creating a new node for this line */
                         pnTemp = node_init(szLine);
                         
@@ -261,8 +295,8 @@ void* reader_thread(void *pThreadData)
                         /*Taking totall amount of nodes in search*/
                         iCounter =pthData->plSearchQueue->iNodes;
                         
-                        /* Increase the read->search semafor */
-                        sem_post(&semafor_RS);
+                        /* Increase the read->search semaphor */
+                        sem_post(&semaphor_RS);
                         
                         /* Unlock the mutex */
                         pthread_mutex_unlock(&mutex_RS);
@@ -274,6 +308,7 @@ void* reader_thread(void *pThreadData)
                             usleep(1000);
                             
                         }
+                        
                     }
                     else
                     {
@@ -289,8 +324,8 @@ void* reader_thread(void *pThreadData)
                 {
                     /* Sending the last line */
                     
-                    array_swap(szLine, &j);
                     szLine[j+1] = '\0';
+                    array_swap(szLine, &j);
                     pnTemp = node_init(szLine);
                     /* Give a signal to other thread for searching */
                     pthread_mutex_lock(&mutex_RS);
@@ -303,7 +338,7 @@ void* reader_thread(void *pThreadData)
                     /* Unlock the mutex */
                     pthread_mutex_unlock(&mutex_RS);
                     /* Increment search semaphore */
-                    sem_post(&semafor_RS);
+                    sem_post(&semaphor_RS);
                     break;
                 }
             }
@@ -313,9 +348,10 @@ void* reader_thread(void *pThreadData)
         pthread_mutex_lock(&mutex_CP);
         pthData->iFile_end = 1;
         pthread_mutex_unlock(&mutex_CP);
+        sem_post(&semaphor_CP);
         
-        /* Increase the read->search semafor, if there was nothing to search */
-        sem_post(&semafor_RS);
+        /* Increase the read->search semaphor, if there was nothing to search */
+        sem_post(&semaphor_RS);
         /* Close the file */
         fclose(file);
         /* Free the memory */
@@ -344,15 +380,15 @@ void* search_thread(void *pThreadData)
         pthread_mutex_lock(&mutex_CP);
         pthData->iError = 1;
         pthread_mutex_unlock(&mutex_CP);
-        
+        sem_post(&semaphor_CP);
         /* Increase writer semaphore */
-        sem_post(&semafor_SW);
+        sem_post(&semaphor_SW);
         return NULL;
     }
     while (1)
     {
         /* Lets wait untill we have some thing to scan */
-        sem_wait(&semafor_RS);
+        sem_wait(&semaphor_RS);
         
         /* Try to get the line from the search queue */
         pthread_mutex_lock(&mutex_RS);
@@ -381,7 +417,7 @@ void* search_thread(void *pThreadData)
                 pthread_mutex_unlock(&mutex_SW);
                 
                 /* Increase the writer semaphore */
-                sem_post(&semafor_SW);
+                sem_post(&semaphor_SW);
                 
                 iSearch=0;
             }
@@ -397,23 +433,28 @@ void* search_thread(void *pThreadData)
         /* if we have nothing to do, lets check that we still need to work */
         else if (iSearch == 0)
         {
-            /* a check if the file have ended or we have all needed lines */
-            pthread_mutex_lock(&mutex_CP);
-            if ( ((pthData->iFile_end!=0) || (pthData->iMax_lines!=0)) || (pthData->iError!=0))
+            if (sem_trywait(&semaphor_CP)==0)
             {
-                /* There is nothing else we can do */
-                pthData->Search_is_done = 1;
-                pthread_mutex_unlock(&mutex_CP);
-                break;
-            }
-            else
-            {
-                pthread_mutex_unlock(&mutex_CP);
+                
+                /* a check if the file have ended or we have all needed lines */
+                pthread_mutex_lock(&mutex_CP);
+                if ( ((pthData->iFile_end!=0) || (pthData->iMax_lines!=0)) || (pthData->iError!=0))
+                {
+                    /* There is nothing else we can do */
+                    pthData->Search_is_done = 1;
+                    pthread_mutex_unlock(&mutex_CP);
+                    sem_post(&semaphor_CP);
+                    break;
+                }
+                else
+                {
+                    pthread_mutex_unlock(&mutex_CP);
+                }
             }
         }
     }
     /* Increase the writer semaphore */
-    sem_post(&semafor_SW);
+    sem_post(&semaphor_SW);
     search_destroy(psSearch);
     free(szMask_temp);
     return NULL;
@@ -443,7 +484,7 @@ void* writer_thread(void *pThreadData)
     while (1)
     {
         /* Wait on writer semaphore untill we have something to do */
-        sem_wait(&semafor_SW);
+        sem_wait(&semaphor_SW);
         
         /* lets try to get a line for our work */
         pthread_mutex_lock(&mutex_SW);
@@ -493,37 +534,41 @@ void* writer_thread(void *pThreadData)
             pthread_mutex_lock(&mutex_CP);
             pthData->iMax_lines = 1;
             pthread_mutex_unlock(&mutex_CP);
+            sem_post(&semaphor_CP);
             break;
         }
         /* Is there anyone else still working */
         if (write == 0)
         {
            /* We need to check, if something stil in search or read */
-           pthread_mutex_lock(&mutex_CP);
-           if (pthData->iError!=0)
-           {
-               pthData->iMax_lines = 1;
-               pthread_mutex_unlock(&mutex_CP);
-               break;
-           }
-           else if (pthData->Search_is_done!=0)
-           {
-               pthData->iMax_lines = 1;
-               pthread_mutex_unlock(&mutex_CP);
-               break;
-           }
-           else
-           {
-               pthread_mutex_unlock(&mutex_CP);
-           }
+            if (sem_trywait(&semaphor_CP)==0)
+            {
+                pthread_mutex_lock(&mutex_CP);
+                if (pthData->iError!=0)
+                {
+                    pthData->iMax_lines = 1;
+                    pthread_mutex_unlock(&mutex_CP);
+                    break;
+                }
+                else if (pthData->Search_is_done!=0)
+                {
+                    pthData->iMax_lines = 1;
+                    pthread_mutex_unlock(&mutex_CP);
+                    sem_post(&semaphor_CP);
+                    break;
+                }
+                else
+                {
+                    pthread_mutex_unlock(&mutex_CP);
+                }
+            }
         }
     }
     /* Counting amount of lines */
     iAmount = iMaxLines-max_lines;
     if (iOut!=0)
     {
-        //file = fopen("Result.txt", "w+");
-        fprintf(file,"Log file Readed, totall amount of lines coresponding to mask: %d\n", iAmount);
+        fprintf(file,"\nLog file Readed, totall amount of lines coresponding to mask: %d\n", iAmount);
         fclose(file);
         printf("Log file Readed, totall amount of lines coresponding to mask: %d\n", iAmount);
     }
@@ -543,13 +588,7 @@ int main(int argc, const char * argv[])
         printf("Start without parammeters create 2GB File 'Programmer_Commandments.txt' \n");
         file_create(8500000);
         printf("File 'Programmer_Commandments.txt' created\n");
-        //szMask="There is no line like that";
-        //szFilePath = "Programmer_Commandments.txt";
-        //iScanTail = 1;
-        //iMaxLines = 1000;
-        //iOut = 1;
-        //szSeparator  = "\n";
-        //return SUCCESS;
+        return SUCCESS;
     }
     else {
         int i = 0;
@@ -557,10 +596,12 @@ int main(int argc, const char * argv[])
             switch (start_parameters_parsing(argv[i])) {
                 case HELP:
                     print_help();
+                    safe_exit();
                     return SUCCESS;
                 case SUCCESS:
                     break;
                 default:
+                    safe_exit();
                     return ERROR;
             }
         }
@@ -568,14 +609,20 @@ int main(int argc, const char * argv[])
         {
             /* Print error: not enaugh input parameters */
             printf("Input parammeters error: no file_path parammeters or mask parammeters \n");
+            safe_exit();
             return ERROR;
         }
-        if ( !iMaxLines ){ iMaxLines = 10000;     }
+        if ( !iMaxLines ){ iMaxLines = 1000;     }
         if ( !iScanTail ){ iScanTail = 0;         }
         /* Default output - screen */
         if ( !iOut ){ iOut =  0;                  }
-        if ( !szSeparator ){ szSeparator  = "\n"; }
+        if ( !szSeparator ){ szSeparator  = "\n\0"; }
     }
+
+    /* Getting the time */
+    time_t start_time, end_time;
+    double work_time;
+    start_time = time(NULL);
     
     /* Common data structure for threads */
     comon_data_t stThreadData = {list_init(), list_init(), 0,0,0,0};
@@ -586,8 +633,9 @@ int main(int argc, const char * argv[])
     pthread_mutex_init(&mutex_CP,NULL);
     
     /* Initialisation of writer semaphore */
-    sem_init(&semafor_SW, 0, 0);
-    sem_init(&semafor_RS, 0, 0);
+    sem_init(&semaphor_SW, 0, 0);
+    sem_init(&semaphor_RS, 0, 0);
+    sem_init(&semaphor_CP, 0, 0);
     
     /* Pointers to threads */
     pthread_t pthReader, pthSearcher, pthWriter;
@@ -613,25 +661,26 @@ int main(int argc, const char * argv[])
     pthread_join(pthReader, NULL);
     pthread_join(pthSearcher, NULL);
     pthread_join(pthWriter, NULL);
-
+    
+    /* Get and print the time */
+    end_time = time(NULL);
+    work_time = difftime(end_time, start_time);
+    printf("The program has finished after %.0f seconds \n", work_time);
+    
     /* Destroying mutexes */
     pthread_mutex_destroy(&mutex_RS);
     pthread_mutex_destroy(&mutex_SW);
     pthread_mutex_destroy(&mutex_CP);
     
-    sem_destroy(&semafor_RS);
-    sem_destroy(&semafor_SW);
+    /* Destroy semapfores */
+    sem_destroy(&semaphor_RS);
+    sem_destroy(&semaphor_SW);
+    sem_destroy(&semaphor_CP);
     
     /* Destroying everything */
     list_destroy(stThreadData.plWrightQueue);
     list_destroy(stThreadData.plSearchQueue);
     
-    free(szFilePath);
-    free(szMask);
-    /* if it's not a default separator, we will need to free him*/
-    if ( strcmp(szSeparator, "\n") != 0)
-    {
-        free(szSeparator);szSeparator=NULL;
-    }
+    safe_exit();
     return SUCCESS;
 }

@@ -4,7 +4,7 @@
 int compare_symbol_to_common_symbols(char *Symbol)
 {
     /* Common symbols*/
-    char szSymbols[36] = ",. -!\"#$%&*;<=>@[]^_`{|}()№'~@:+?/";
+    char szSymbols[37] = ",. -!\"#$%&*;<=>@[]^_`{|}()№'~@:+?/";
     int i;
     for (i=0; i<36; i++)
     {
@@ -14,6 +14,18 @@ int compare_symbol_to_common_symbols(char *Symbol)
         }
     }
     return NOT_FOUND;
+}
+
+/* Safe move for multibyte symbols */
+char *safe_move(char* szString)
+{
+    szString++;
+    if ( *(szString) > 0x7f )
+    {
+        szString++;
+    }
+    return szString;
+    
 }
 
 /* Search functions coresponding to mask */

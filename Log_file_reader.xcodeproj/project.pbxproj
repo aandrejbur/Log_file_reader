@@ -26,7 +26,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		FD1199931E3D53F700DC0F4D /* log.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = log.txt; sourceTree = "<group>"; };
 		FD383CB31E407AD900C4AD76 /* usefull_utilities.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = usefull_utilities.c; sourceTree = "<group>"; };
 		FD383CB41E407ADA00C4AD76 /* usefull_utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = usefull_utilities.h; sourceTree = "<group>"; };
 		FD61C5391E462F0F00E15C9E /* search_lib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = search_lib.c; sourceTree = "<group>"; tabWidth = 3; };
@@ -69,7 +68,6 @@
 			isa = PBXGroup;
 			children = (
 				FDF14FE01E3B840500D60789 /* main.c */,
-				FD1199931E3D53F700DC0F4D /* log.txt */,
 				FDFB0A831E3FDB6C002981B4 /* list_t.c */,
 				FDFB0A841E3FDB6C002981B4 /* list_t.h */,
 				FD383CB31E407AD900C4AD76 /* usefull_utilities.c */,
