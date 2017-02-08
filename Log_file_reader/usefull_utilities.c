@@ -1,5 +1,21 @@
 #include "usefull_utilities.h"
 
+#define FORWARD 0
+#define BACKWARD 1
+
+char *rus[] ={
+    "Программирование - твоя главная страсть. И да не будет у тебя страсти главней.",
+    "Не сотвори себе кумира из конкретной технологии. Ибо программирование требует постоянного развития, а технологии-кумиры останавливают развитие.",
+    "Не возноси хвальбу программированию в неподходящей компании. Ты сам себя накажешь, ибо будешь не понят, и люди отвернутся от тебя.",
+    "Работай много и хорошо, но не забывай и про отдых. Ибо нет ничего страшнее, чем код усталого, засыпающего программиста.",
+    "Уважай учителей и учеников своих. Постоянно учись и учи окружающих, чтобы было тебе всё легче и легче делать всё более и более сложные вещи.",
+    "Не убий в себе ребенка. Не забывай эмоции от первого запуска первой написанной тобой программы и воспринимай каждую следующую, как ту - первую.",
+    "Не изменяй программированию. Ибо программист может стать кем угодно, но этот кто угодно обратно программистом уже не станет.",
+    "Не кради код ближнего своего.",
+    "Не программируй то, что может принести вред другим. Ибо встав раз на путь дьявола - на нем и останешься.",
+    "Не завидуй ближнему твоему, если он умеет лучше программировать. Ибо программирование - это божественный дар, но его можно развить. Так что не завидуй, а развивай.",
+};
+
 char *eng[] = {
     "Thou shalt run lint frequently and study its pronouncements with care, for verily its perception and judgement oft exceed thine.",
     "Thou shalt not follow the NULL pointer, for chaos and madness await thee at its end.",
@@ -22,17 +38,18 @@ void file_create(long iSize){
     int iLineNumber = 0;
     while (lLines < iSize)
     {
-        /* Forward */
-        for (iLineNumber = 0; iLineNumber<=10; iLineNumber++)
+        /* RUS */
+        for (iLineNumber = 0; iLineNumber<10; iLineNumber++)
         {
-            sprintf(szLine, "Line: %ld Commandment %d: %s \n",lLines+1,iLineNumber+1, eng[iLineNumber]);
+            sprintf(szLine, "Строка: %ld Заповедь %d: %s \n",lLines+1,iLineNumber+1, rus[iLineNumber]);
             fprintf(file, "%s", szLine);
             lLines++;
+            
         }
-        /* Backward */
-        for (iLineNumber = 9; iLineNumber>=0; iLineNumber--)
+        /* ENG */
+        for (iLineNumber = 0; iLineNumber<10; iLineNumber++)
         {
-            sprintf(szLine, "Line: %ld Commandment %d: %s \n",lLines+1,iLineNumber, eng[iLineNumber]);
+            sprintf(szLine, "Line: %ld Commandment %d: %s \n",lLines+1,iLineNumber+1, eng[iLineNumber]);
             fprintf(file, "%s", szLine);
             lLines++;
         }
@@ -51,6 +68,75 @@ void array_swap( char* array, int *counter )
         (array[i]) = (char)(array[*counter-1-i]);
         array[*counter-1-i]=cTempC;
     }
+}
+
+/* Safe move for multibyte symbols */
+char *safe_move(char* szString, int imode, int iLength)
+{
+    if (szString == NULL)
+    {
+        return NULL;
+    }
+    char *pNewPosition = NULL;
+    switch (imode) {
+            /*safe move forward*/
+        case FORWARD:
+            pNewPosition = szString+iLength;
+            while ((unsigned char)*(pNewPosition -1)>= 0xC0) {
+                pNewPosition++;;
+            }
+            if ( (unsigned char)*pNewPosition >= 0x80 && (unsigned char)*pNewPosition <=0xC0)
+            {
+                pNewPosition++;
+            }
+            break;
+            /*safe move backward*/
+        case BACKWARD:
+            pNewPosition = szString-iLength;
+            while (0x80 <= (unsigned char)pNewPosition[0] && (unsigned char)pNewPosition[0]<0xC0 )
+            {
+                pNewPosition--;
+            }
+            break;
+        default:
+            return NULL;
+    }
+    return pNewPosition;
+}
+
+
+/*
+ * Copy string src to buffer dst of size dsize.  At most dsize-1
+ * chars will be copied.  Always NUL terminates (unless dsize == 0).
+ * Returns strlen(src); if retval >= dsize, truncation occurred.
+ */
+size_t strlcpy(char *dst, const char *src, size_t dsize)
+{
+    const char *osrc = src;
+    size_t nleft = dsize;
+    
+    /* Copy as many bytes as will fit. */
+    if (nleft != 0)
+    {
+        while (--nleft != 0)
+        {
+            if ((*dst++ = *src++) == '\0')
+            {
+                break;
+            }
+        }
+    }
+    /* Not enough room in dst, add NUL and traverse rest of src. */
+    if (nleft == 0)
+    {
+        if (dsize != 0)
+        {
+            *dst = '\0';		/* NUL-terminate dst */
+        }
+        while (*src++)
+            ;
+    }
+    return(src - osrc - 1);	/* count does not include NUL */
 }
 
 /* Print help information */

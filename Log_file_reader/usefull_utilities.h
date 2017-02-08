@@ -12,4 +12,10 @@ void file_create(long iSize);
 /* Print help information */
 void print_help();
 
+/* Safe move for multibyte symbols */
+char *safe_move(char* szString, int imode, int iLength);
+
+/* Copy string src to buffer dst of size dsize. */
+size_t strlcpy(char *dst, const char *src, size_t dsize);
+
 #endif /* usefull_utilities_h */

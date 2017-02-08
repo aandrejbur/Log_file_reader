@@ -18,6 +18,7 @@
 
 #define HELP 911
 
+
 /* Input parameters */
 char *szMask, *szFilePath, *szSeparator;
 int iScanTail, iMaxLines, iAmount, iOut;
@@ -103,10 +104,12 @@ void safe_exit()
     {
         free(szFilePath);
     }
-    if (szMask) {
+    if (szMask)
+    {
         free(szMask);
     }
-    if ((szSeparator) && (strcmp(szSeparator, "\n\0") != 0)) {
+    if ((szSeparator) && (strcmp(szSeparator, "\n\0") != 0))
+    {
         free(szSeparator);
     }
 
@@ -548,11 +551,18 @@ void* writer_thread(void *pThreadData)
                 {
                     pthData->iMax_lines = 1;
                     pthread_mutex_unlock(&mutex_CP);
+                    sem_post(&semaphor_CP);
                     break;
                 }
                 else if (pthData->Search_is_done!=0)
                 {
                     pthData->iMax_lines = 1;
+                    pthread_mutex_unlock(&mutex_CP);
+                    sem_post(&semaphor_CP);
+                    break;
+                }
+                else if (pthData->iFile_end!=0)
+                {
                     pthread_mutex_unlock(&mutex_CP);
                     sem_post(&semaphor_CP);
                     break;
