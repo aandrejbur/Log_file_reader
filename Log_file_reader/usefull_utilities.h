@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#include "includes.h"
+
 /* Swoping the array */
 void array_swap( char* array, int *counter );
 
@@ -12,10 +14,16 @@ void file_create(long iSize);
 /* Print help information */
 void print_help();
 
-/* Safe move for multibyte symbols */
-char *safe_move(char* szString, int imode, int iLength);
-
 /* Copy string src to buffer dst of size dsize. */
-size_t strlcpy(char *dst, const char *src, size_t dsize);
+size_t strlcpy_udev(char *dst, const char *src, size_t dsize);
+
+/* Console progress bar */
+void load_bar(unsigned long lCurrent, unsigned long lAll, int iFrequancy, int iWide);
+
+/* Realoc string */
+char* realoc_string(char* szLine, int *iCurent_LineSize);
+
+/* Get the max walue */
+long max (long* a, long*b);
 
 #endif /* usefull_utilities_h */

@@ -1,5 +1,5 @@
 #include "list_t.h"
-
+#include "includes.h"
 /* Create new node_t from string */
 node_t *node_init(char *string)
 {
@@ -7,8 +7,8 @@ node_t *node_init(char *string)
     {
         node_t *pnNode = malloc(sizeof(node_t));
         pnNode->pnNext = pnNode->pnPrev = NULL;
-        pnNode->szLine = malloc(strlen(string)+2);
-        strncpy(pnNode->szLine, string,strlen(string)+1);
+        pnNode->szLine = malloc(strlen(string)+3);
+        strlcpy_udev(pnNode->szLine, string,strlen(string)+1);
         return pnNode;
     }
     else
@@ -43,7 +43,6 @@ list_t* list_init()
 /* Destroy list_t*/
 int list_destroy(list_t *plList)
 {
-    
     if (plList == NULL)
     {
         return ERROR;

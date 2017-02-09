@@ -1,5 +1,39 @@
 #include "search_lib.h"
-#include "usefull_utilities.h"
+
+/* Safe move for multibyte symbols */
+char *safe_move(char* szString, int imode, int iLength)
+{
+    if (szString == NULL)
+    {
+        return NULL;
+    }
+    char *pNewPosition = NULL;
+    switch (imode) {
+            /*safe move forward*/
+        case FORWARD:
+            pNewPosition = szString+iLength;
+            while ((unsigned char)*(pNewPosition -1)>= 0xC0) {
+                pNewPosition++;;
+            }
+            while ( (unsigned char)*pNewPosition >= 0x80 && (unsigned char)*pNewPosition <=0xC0)
+            {
+                pNewPosition++;
+            }
+            break;
+            /*safe move backward*/
+        case BACKWARD:
+            pNewPosition = szString-iLength;
+            while (0x80 <= (unsigned char)pNewPosition[0] && (unsigned char)pNewPosition[0]<0xC0 )
+            {
+                pNewPosition--;
+            }
+            break;
+        default:
+            return NULL;
+    }
+    return pNewPosition;
+}
+
 /* Function to compare the symbol to the common symbols */
 int compare_symbol_to_common_symbols(char *Symbol)
 {
@@ -8,10 +42,7 @@ int compare_symbol_to_common_symbols(char *Symbol)
     int i;
     for (i=0; i<36; i++)
     {
-        if (strncmp(Symbol,szSymbols + i,1) == 0)
-        {
-            return FOUND;
-        }
+        if (strncmp(Symbol,szSymbols + i,1) == 0) return FOUND;
     }
     return NOT_FOUND;
 }
@@ -353,7 +384,6 @@ int search_mode_8(char* szLine, void *psSearch)
     char *cPosition = szLine, *cNext=NULL, *cPrevius=NULL;
     int iStatus = 0;
     
-    
     while (cPosition!= NULL)
     {
         iStatus = 0;
@@ -373,8 +403,6 @@ int search_mode_8(char* szLine, void *psSearch)
                 }
                 else goto IF_END;
             }
-            
-            
             /* Check the next symbol */
             cNext = safe_move(cPosition, 0, psSearch_temp->iLength);
             if (*cNext =='\0')
@@ -423,7 +451,7 @@ search_t* compile_search_expression(char* szMask)
         psSearch_temp->search = &search_mode_0;
         szMask[iLength-1] = 0;
         psSearch_temp->szMask = malloc(iLength+2);
-        strlcpy(psSearch_temp->szMask, szMask+1, iLength+2);
+        strlcpy_udev(psSearch_temp->szMask, szMask+1, iLength+1);
         psSearch_temp->iLength = iLength-2;
     }
     /* Generate searcht_t corresponding to mask: '?mask?' */
@@ -433,7 +461,7 @@ search_t* compile_search_expression(char* szMask)
         psSearch_temp->szMask = malloc(iLength+2);
         szMask[iLength-1] = 0;
         
-        strlcpy(psSearch_temp->szMask, szMask+1, iLength+2);
+        strlcpy_udev(psSearch_temp->szMask, szMask+1, iLength+1);
         psSearch_temp->iLength = iLength-2;
     }
     /* Generate searcht_t corresponding to mask: '*mask?' */
@@ -442,7 +470,7 @@ search_t* compile_search_expression(char* szMask)
         psSearch_temp->search = &search_mode_6;
         psSearch_temp->szMask = malloc(iLength+2);
         szMask[iLength-1] = 0;
-        strlcpy(psSearch_temp->szMask, szMask+1, iLength+2);
+        strlcpy_udev(psSearch_temp->szMask, szMask+1, iLength+1);
         psSearch_temp->iLength = iLength-2;
     }
     /* Generate searcht_t corresponding to mask: '?mask*' */
@@ -451,41 +479,41 @@ search_t* compile_search_expression(char* szMask)
         psSearch_temp->search = &search_mode_7;
         psSearch_temp->szMask = malloc(iLength+2);
         szMask[iLength-1] = 0;
-        strlcpy(psSearch_temp->szMask, szMask+1, iLength+2);
+        strlcpy_udev(psSearch_temp->szMask, szMask+1, iLength+1);
         psSearch_temp->iLength = iLength-2;
     }
     /* Generate searcht_t corresponding to mask: '*mask' */
     else if (szMask[0]=='*')
     {
         psSearch_temp->search = &search_mode_1;
-        psSearch_temp->szMask = malloc(iLength+1);
-        strlcpy(psSearch_temp->szMask, szMask+1, iLength+1);
+        psSearch_temp->szMask = malloc(iLength+2);
+        strlcpy_udev(psSearch_temp->szMask, szMask+1, iLength+1);
         psSearch_temp->iLength = iLength-1;
     }
     /* Generate searcht_t corresponding to mask: '?mask' */
     else if (szMask[0]=='?')
     {
         psSearch_temp->search = &search_mode_4;
-        psSearch_temp->szMask = malloc(iLength+1);
-        strlcpy(psSearch_temp->szMask, szMask+1, iLength+1);
+        psSearch_temp->szMask = malloc(iLength+2);
+        strlcpy_udev(psSearch_temp->szMask, szMask+1, iLength+1);
         psSearch_temp->iLength = iLength-1;
     }
     /* Generate searcht_t corresponding to mask: 'mask?' */
     else if (szMask[iLength-1]=='?')
     {
         psSearch_temp->search = &search_mode_5;
-        psSearch_temp->szMask = malloc(iLength+1);
+        psSearch_temp->szMask = malloc(iLength+2);
         szMask[iLength-1] = 0;
-        strlcpy(psSearch_temp->szMask, szMask, iLength+1);
+        strlcpy_udev(psSearch_temp->szMask, szMask, iLength+1);
         psSearch_temp->iLength = iLength-1;
     }
     /* Generate searcht_t corresponding to mask: 'mask*' */
     else if (szMask[iLength-1]=='*')
     {
         psSearch_temp->search = &search_mode_2;
-        psSearch_temp->szMask = malloc(iLength+1);
+        psSearch_temp->szMask = malloc(iLength+2);
         szMask[iLength-1] = 0;
-        strlcpy(psSearch_temp->szMask, szMask, iLength+1);
+        strlcpy_udev(psSearch_temp->szMask, szMask, iLength+1);
         psSearch_temp->iLength = iLength-1;
     }
     /* Generate searcht_t corresponding to mask: 'mask' */
@@ -493,7 +521,7 @@ search_t* compile_search_expression(char* szMask)
     {
         psSearch_temp->search = &search_mode_8;
         psSearch_temp->szMask = malloc(iLength+2);
-        strlcpy(psSearch_temp->szMask, szMask, iLength+1);
+        strlcpy_udev(psSearch_temp->szMask, szMask, iLength+1);
         psSearch_temp->iLength = iLength;
     }
     return psSearch_temp;

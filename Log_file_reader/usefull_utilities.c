@@ -1,7 +1,22 @@
 #include "usefull_utilities.h"
 
-#define FORWARD 0
-#define BACKWARD 1
+/* Console progress bar */
+void load_bar(unsigned long lCurrent, unsigned long lAll, int iFrequancy, int iWide)
+{
+    int i;
+    
+    if( lCurrent % (lAll/iFrequancy + 1) != 0 ) return;
+    
+    float ratio = lCurrent/(float)lAll;
+    int c = ratio * iWide;
+    
+    printf("%5d*[", (int)(lCurrent));
+    
+    for (i = 0; i < c; i++)	printf("=");
+    for (i = c; i < iWide; i++)	printf(" ");
+    
+    printf("]\n\033[F\033[J");
+}
 
 char *rus[] ={
     "Программирование - твоя главная страсть. И да не будет у тебя страсти главней.",
@@ -30,26 +45,27 @@ char *eng[] = {
 };
 
 /* Printing a big true file */
-void file_create(long iSize){
+void file_create(long iSize)
+{
     FILE *file = NULL;
-    long lLines = 0;
+    long lLines = 1;
     file = fopen("Programmer_Commandments.txt", "w+");
     char szLine[2024];
     int iLineNumber = 0;
-    while (lLines < iSize)
+    while (lLines <= iSize)
     {
+        load_bar(lLines,iSize,1000,80);
         /* RUS */
         for (iLineNumber = 0; iLineNumber<10; iLineNumber++)
         {
-            sprintf(szLine, "Строка: %ld Заповедь %d: %s \n",lLines+1,iLineNumber+1, rus[iLineNumber]);
+            sprintf(szLine, "Строка: %ld Заповедь %d: %s \n",lLines,iLineNumber+1, rus[iLineNumber]);
             fprintf(file, "%s", szLine);
             lLines++;
-            
         }
         /* ENG */
         for (iLineNumber = 0; iLineNumber<10; iLineNumber++)
         {
-            sprintf(szLine, "Line: %ld Commandment %d: %s \n",lLines+1,iLineNumber+1, eng[iLineNumber]);
+            sprintf(szLine, "Line: %ld Commandment %d: %s \n",lLines,iLineNumber+1, eng[iLineNumber]);
             fprintf(file, "%s", szLine);
             lLines++;
         }
@@ -70,47 +86,13 @@ void array_swap( char* array, int *counter )
     }
 }
 
-/* Safe move for multibyte symbols */
-char *safe_move(char* szString, int imode, int iLength)
-{
-    if (szString == NULL)
-    {
-        return NULL;
-    }
-    char *pNewPosition = NULL;
-    switch (imode) {
-            /*safe move forward*/
-        case FORWARD:
-            pNewPosition = szString+iLength;
-            while ((unsigned char)*(pNewPosition -1)>= 0xC0) {
-                pNewPosition++;;
-            }
-            if ( (unsigned char)*pNewPosition >= 0x80 && (unsigned char)*pNewPosition <=0xC0)
-            {
-                pNewPosition++;
-            }
-            break;
-            /*safe move backward*/
-        case BACKWARD:
-            pNewPosition = szString-iLength;
-            while (0x80 <= (unsigned char)pNewPosition[0] && (unsigned char)pNewPosition[0]<0xC0 )
-            {
-                pNewPosition--;
-            }
-            break;
-        default:
-            return NULL;
-    }
-    return pNewPosition;
-}
-
 
 /*
  * Copy string src to buffer dst of size dsize.  At most dsize-1
  * chars will be copied.  Always NUL terminates (unless dsize == 0).
  * Returns strlen(src); if retval >= dsize, truncation occurred.
  */
-size_t strlcpy(char *dst, const char *src, size_t dsize)
+size_t strlcpy_udev(char *dst, const char *src, size_t dsize)
 {
     const char *osrc = src;
     size_t nleft = dsize;
@@ -139,14 +121,23 @@ size_t strlcpy(char *dst, const char *src, size_t dsize)
     return(src - osrc - 1);	/* count does not include NUL */
 }
 
-/* Print help information */
-void print_help()
+
+
+/* Realoc string */
+char* realoc_string(char* szLine, int *iCurent_LineSize)
 {
-    printf("Programm call syntax: ./log_reader -f='FILE_PATH' -m='MASK' -c='MAX LINES'(default 10000) \n");
-    printf("                      -d='1(0)'File scan direction: -d=1 - from tail\n");
-    printf("                                                    -d=2 - from the begining (default) \n");
-    printf("                      -o='1(0)' output type: -o=1 - Save output data in file: 'Result.txt' \n");
-    printf("                                             -o=0 - Print output data on screen \n");
-    printf("                      -s='SEPARATOR' default separator: '\\n' \n");
-    printf("                      -h - help \n");
+    char *szNewLine=NULL;
+    int iNext_lineSize = 0;
+    iNext_lineSize = *iCurent_LineSize + BIGEST_LINE;
+    szNewLine = malloc(iNext_lineSize+1);
+    memmove(szNewLine, szLine, *iCurent_LineSize);
+    *iCurent_LineSize = iNext_lineSize;
+    free(szLine);
+    return szNewLine;
+}
+
+/* Get the max walue */
+long max(long* a, long*b)
+{
+    return (*a > *b ? *a : *b);
 }
