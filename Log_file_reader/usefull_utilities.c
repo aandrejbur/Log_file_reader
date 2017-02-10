@@ -1,26 +1,9 @@
 #include "usefull_utilities.h"
 
-/* Console progress bar */
-void load_bar(unsigned long lCurrent, unsigned long lAll, int iFrequancy, int iWide)
-{
-    int i;
-    
-    if( lCurrent % (lAll/iFrequancy + 1) != 0 ) return;
-    
-    float ratio = lCurrent/(float)lAll;
-    int c = ratio * iWide;
-    
-    printf("%5d*[", (int)(lCurrent));
-    
-    for (i = 0; i < c; i++)	printf("=");
-    for (i = c; i < iWide; i++)	printf(" ");
-    
-    printf("]\n\033[F\033[J");
-}
-
+/* Symbolic lines @rus - multibytes @eng = singlebytes */
 char *rus[] ={
     "Программирование - твоя главная страсть. И да не будет у тебя страсти главней.",
-    "Не сотвори себе кумира из конкретной технологии. Ибо программирование требует постоянного развития, а технологии-кумиры останавливают развитие.",
+    "Не сотвори себе кумира из конкретной технологии. Ибо программирование требует по стоянного развития, а технологии-кумиры останавливают развитие.",
     "Не возноси хвальбу программированию в неподходящей компании. Ты сам себя накажешь, ибо будешь не понят, и люди отвернутся от тебя.",
     "Работай много и хорошо, но не забывай и про отдых. Ибо нет ничего страшнее, чем код усталого, засыпающего программиста.",
     "Уважай учителей и учеников своих. Постоянно учись и учи окружающих, чтобы было тебе всё легче и легче делать всё более и более сложные вещи.",
@@ -30,7 +13,6 @@ char *rus[] ={
     "Не программируй то, что может принести вред другим. Ибо встав раз на путь дьявола - на нем и останешься.",
     "Не завидуй ближнему твоему, если он умеет лучше программировать. Ибо программирование - это божественный дар, но его можно развить. Так что не завидуй, а развивай.",
 };
-
 char *eng[] = {
     "Thou shalt run lint frequently and study its pronouncements with care, for verily its perception and judgement oft exceed thine.",
     "Thou shalt not follow the NULL pointer, for chaos and madness await thee at its end.",
@@ -44,7 +26,7 @@ char *eng[] = {
     "Thou shalt foreswear, renounce, and abjure the vile heresy which claimeth that ``All the world's a VAX'', and have no commerce with the benighted heathens who cling to this barbarous belief, that the days of thy program may be long even though the days of thy current machine be short.",
 };
 
-/* Printing a big true file */
+/* Printing a big file */
 void file_create(long iSize)
 {
     FILE *file = NULL;
@@ -52,24 +34,28 @@ void file_create(long iSize)
     file = fopen("Programmer_Commandments.txt", "w+");
     char szLine[2024];
     int iLineNumber = 0;
+    printf("Start without parammeters create 2GB File 'Programmer_Commandments.txt' \n");
     while (lLines <= iSize)
     {
-        load_bar(lLines,iSize,1000,80);
+        load_bar(lLines,iSize,1000,40);
         /* RUS */
         for (iLineNumber = 0; iLineNumber<10; iLineNumber++)
         {
-            sprintf(szLine, "Строка: %ld Заповедь %d: %s \n",lLines,iLineNumber+1, rus[iLineNumber]);
+            sprintf(szLine, "Строка: %ld Заповедь %d: %s \n",lLines,
+                    iLineNumber+1, rus[iLineNumber]);
             fprintf(file, "%s", szLine);
             lLines++;
         }
         /* ENG */
         for (iLineNumber = 0; iLineNumber<10; iLineNumber++)
         {
-            sprintf(szLine, "Line: %ld Commandment %d: %s \n",lLines,iLineNumber+1, eng[iLineNumber]);
+            sprintf(szLine, "Line: %ld Commandment %d: %s \n",lLines,
+                    iLineNumber+1, eng[iLineNumber]);
             fprintf(file, "%s", szLine);
             lLines++;
         }
     }
+    printf("File 'Programmer_Commandments.txt' created\n");
     fclose(file);
 }
 
@@ -81,11 +67,11 @@ void array_swap( char* array, int *counter )
     for (i = 0; i < *counter/2; i++)
     {
         cTempC = array[i];
-        (array[i]) = (char)(array[*counter-1-i]);
+        (array[i]) = (char)(array[(*counter)-1-i]);
         array[*counter-1-i]=cTempC;
     }
+    array[*counter]=0;
 }
-
 
 /*
  * Copy string src to buffer dst of size dsize.  At most dsize-1
@@ -121,23 +107,48 @@ size_t strlcpy_udev(char *dst, const char *src, size_t dsize)
     return(src - osrc - 1);	/* count does not include NUL */
 }
 
-
-
 /* Realoc string */
 char* realoc_string(char* szLine, int *iCurent_LineSize)
 {
     char *szNewLine=NULL;
     int iNext_lineSize = 0;
+    /* Compute the length for the new line */
     iNext_lineSize = *iCurent_LineSize + BIGEST_LINE;
+    /* allocate memory for new line*/
     szNewLine = malloc(iNext_lineSize+1);
+    /* copiyng old line in new one */
     memmove(szNewLine, szLine, *iCurent_LineSize);
+    /* swap the pointers */
     *iCurent_LineSize = iNext_lineSize;
+    /* free previous line */
     free(szLine);
+    /* return pointer to the new line */
     return szNewLine;
 }
 
-/* Get the max walue */
-long max(long* a, long*b)
+/* Console progress bar */
+void load_bar(unsigned long lCurrent, unsigned long lAll, int iFrequancy, int iWide)
 {
-    return (*a > *b ? *a : *b);
+    int i;
+    
+    if( lCurrent % (lAll/iFrequancy + 1) != 0 ) return;
+    
+    float ratio = lCurrent/(float)lAll;
+    int c = ratio * iWide;
+    
+    printf("%5d*[", (int)(lCurrent));
+    
+    for (i = 0; i < c; i++)	printf("=");
+    for (i = c; i < iWide; i++)	printf(" ");
+    
+    printf("]\n\033[F\033[J");
+}
+
+/* Check the amount of lines in queue and sleep*/
+void counter_check(int iCounter, int iThreshold, int iSleepTime)
+{
+    if (iCounter > iThreshold)
+    {
+        usleep(iSleepTime);
+    }
 }

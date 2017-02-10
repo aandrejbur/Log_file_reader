@@ -7,10 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 /* Exit codes */
-#define ERROR       -1
-#define SUCCESS     0
+#define ERROR   -1
+#define SUCCESS  0
 
 /* a node struct */
 typedef struct node_t
@@ -33,10 +32,10 @@ typedef struct list
 /* Create new node_t from string */
 node_t* node_init(char *string);
 
-/* Destroyng the node */
+/* Destroying the node */
 int destroy_node(node_t *pnNode);
 
-/* List_t initialisation*/
+/* Clean list initialisation*/
 list_t* list_init();
 
 /* Destroy list_t*/
@@ -48,7 +47,7 @@ int list_tail_add(list_t *plList, node_t *pnNode);
 /* Adding new node_t to the top of the list_t */
 int list_top_add(list_t *plList, node_t *pnNode);
 
-/* Getting node from tail */
+/* Getting node from head */
 node_t* get_node_top(list_t *plList);
 
 #endif /* list_t_h */

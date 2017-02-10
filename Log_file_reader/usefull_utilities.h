@@ -23,7 +23,7 @@ void load_bar(unsigned long lCurrent, unsigned long lAll, int iFrequancy, int iW
 /* Realoc string */
 char* realoc_string(char* szLine, int *iCurent_LineSize);
 
-/* Get the max walue */
-long max (long* a, long*b);
+/* if iCounter > 20000 sleep for */
+void counter_check(int iCounter, int iThreshold, int iSleepTime);
 
 #endif /* usefull_utilities_h */

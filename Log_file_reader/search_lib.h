@@ -26,12 +26,13 @@ typedef struct search_t
     char *szMask;
     /* A pointer to the search function */
     search_function *search;
+    
 } search_t;
 
 /* Safe move for multibyte symbols */
 char *safe_move(char* szString, int imode, int iLength);
 
-/* Compare a symbol to the common symbols */
+/* Compare a symbol to the common symbols by codes (unsigned char)*/
 int compare_symbol_to_common_symbols(char *Symbol);
 
 /* Search functions coresponding to mask */
