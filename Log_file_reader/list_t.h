@@ -30,7 +30,7 @@ typedef struct list
 } list_t;
 
 /* Create new node_t from string */
-node_t* node_init(char *string);
+node_t *node_init(char *string, long lLength);
 
 /* Destroying the node */
 int destroy_node(node_t *pnNode);

@@ -113,7 +113,7 @@ int main(int argc, const char * argv[])
     /* input parametters checking */
     if (argc==1)
     {
-        file_create(8500000);
+        file_create(8500001);
         return SUCCESS;
     }
     else

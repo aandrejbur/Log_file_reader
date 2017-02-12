@@ -12,7 +12,7 @@
 #include "includes.h"
 
 /* Block size to read = 8MB - optimal for current search functions*/
-#define BLOCK_SIZE 4194304
+#define BLOCK_SIZE 8388608
 /* Size of the biggest line for read - 8KB*/
 #define BIGEST_LINE 8192
 /* Max line size that i will give for one line - 1MB */
@@ -68,8 +68,6 @@ typedef struct writer_context
 } writer_t;
 
 
-
-
 /* ----------- Threads control functions-----------*/
 /* Init common data structure */
 common_data_t* threads_data_init(struct input_t *pInputData);
@@ -88,9 +86,6 @@ void threads_sync_destroy();
 /* --------------------END-----------------------*/
 
 
-
-
-
 /* -----------Common threads functions-----------*/
 /* Post the flag in common data */
 void thread_flag_post(int *flag, int thread_id);
@@ -106,9 +101,6 @@ int push_new_node_to_queue(node_t *pnTemp, list_t *plQueue,
 node_t* get_node_from_queue(list_t *plQueue, pthread_mutex_t *mutex,
                                 int* iFlag);
 /* --------------------END-----------------------*/
-
-
-
 
 
 /* Reader thread function*/
@@ -129,13 +121,8 @@ void* reader_thread(void *pThreadData);
     /* --------------------END-----------------------*/
 
 
-
-
 /* Searcher thread function*/
 void* search_thread(void *pThreadData);
-
-
-
 
 
 /* writer thread function*/

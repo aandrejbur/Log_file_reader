@@ -1,14 +1,14 @@
 #include "list_t.h"
 #include "includes.h"
 /* Create new node_t from string */
-node_t *node_init(char *string)
+node_t *node_init(char *string, long lLength)
 {
     if (string!=NULL)
     {
         node_t *pnNode = malloc(sizeof(node_t));
         pnNode->pnNext = pnNode->pnPrev = NULL;
-        pnNode->szLine = malloc(strlen(string)+3);
-        strlcpy_udev(pnNode->szLine, string,strlen(string)+1);
+        pnNode->szLine = malloc(lLength+1);
+        strlcpy_udev(pnNode->szLine, string,lLength+1);
         return pnNode;
     }
     else

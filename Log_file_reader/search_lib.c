@@ -47,83 +47,81 @@ int compare_symbol_to_common_symbols(char *Symbol)
         case (0x5c): case (0x5d): case (0x5e):
         case (0x5f): case (0x60): case (0x7b):
         case (0x7c): case (0x7d): case (0x7e):
-        case (0x7f):
+        case (0x7f): case ('\n'): case (0x00):
             return FOUND;
         default:
             return NOT_FOUND;
     }
 }
-
 /* Search functions coresponding to mask */
 /* '*mask*' */
-int search_mode_0(char* szLine, void *psSearch)
+char* search_mode_0(char* szLine, void *psSearch)
 {
     search_t* psSearch_temp = (search_t*)psSearch;
-    if ((strstr(szLine, psSearch_temp->szMask))==NULL)
-    {
-        return NOT_FOUND;
-    }
-    return FOUND;
+    //char* cPosition = KMP_search(szLine, psSearch_temp);
+    return strstr(szLine, psSearch_temp->szMask);
 }
 
 /* '*mask' */
-int search_mode_1(char* szLine, void *psSearch)
+char* search_mode_1(char* szLine, void *psSearch)
 {
     search_t* psSearch_temp = (search_t*)psSearch;
     char *cPosition = szLine;
+    char *cNext = NULL;
     
     while (cPosition != NULL)
     {
-        if ((cPosition=strstr(cPosition, psSearch_temp->szMask))!=NULL)
+        if ((cPosition = strstr(cPosition, psSearch_temp->szMask))!=NULL)
         {
             /* Check next symbol */
-            if (*(cPosition = safe_move(cPosition, 0, psSearch_temp->iLength)) == '\0')
+            if (*(cNext = safe_move(cPosition, 0, psSearch_temp->iLength)) == '\0')
             {
-                return FOUND;
+                return cPosition;
             }
-            else if (compare_symbol_to_common_symbols(cPosition) == FOUND)
+            else if (compare_symbol_to_common_symbols(cNext) == FOUND)
             {
-                return FOUND;
+                return cPosition;
             }
+            cPosition = safe_move(cPosition, 0, psSearch_temp->iLength);
         }
-        else return NOT_FOUND;
+        else return NULL;
     }
-    return NOT_FOUND;
+    return NULL;
 }
 /* 'mask*' */
-int search_mode_2(char* szLine, void *psSearch)
+char* search_mode_2(char* szLine, void *psSearch)
 {
     search_t* psSearch_temp = (search_t*)psSearch;
     char *cPosition = szLine, *pcPrevious = NULL;
     while (cPosition!=NULL)
     {
-        if ((cPosition=strstr(cPosition, psSearch_temp->szMask))!=NULL)
+        if ((cPosition = strstr(cPosition, psSearch_temp->szMask))!=NULL)
         {
             /*Check the previous symbol*/
             if (cPosition == szLine)
             {
-                return FOUND;
+                return cPosition;
             }
             else
             {
                 if ( (pcPrevious = safe_move(cPosition, 1, 1)) == szLine)
                 {
-                    return  FOUND;
+                    return  cPosition;
                 }
                 if (compare_symbol_to_common_symbols(pcPrevious) == FOUND)
                 {
-                    return FOUND;
+                    return cPosition;
                 }
             }
             cPosition = safe_move(cPosition, 0, psSearch_temp->iLength);
         }
-        else return NOT_FOUND;
+        else return NULL;
     }
-    return NOT_FOUND;
+    return NULL;
 }
 
 /* '?mask?' */
-int search_mode_3(char* szLine, void *psSearch)
+char* search_mode_3(char* szLine, void *psSearch)
 {
     search_t* psSearch_temp = (search_t*)psSearch;
     char *cPosition = szLine, *cNext = NULL, *cPrevius = NULL;
@@ -132,7 +130,7 @@ int search_mode_3(char* szLine, void *psSearch)
     while (cPosition!=NULL)
     {
         iStatus =0;
-        if ((cPosition=strstr(cPosition, psSearch_temp->szMask))!=NULL)
+        if ((cPosition = strstr(cPosition, psSearch_temp->szMask))!=NULL)
         {
             /*Check the previous symbol*/
             if (cPosition != szLine)
@@ -153,7 +151,7 @@ int search_mode_3(char* szLine, void *psSearch)
                     }
                     else iStatus++;
                 }
-            }
+            } else goto IF_END;
             /*check the Next symbol*/
             if (*(cNext = safe_move(cPosition, 0, psSearch_temp->iLength)) != '\0')
             {
@@ -168,18 +166,18 @@ int search_mode_3(char* szLine, void *psSearch)
                 else iStatus++;
             }
             
-            if (iStatus==2) return FOUND;
+            if (iStatus==2) return cPosition;;
             
             IF_END:
             cPosition = safe_move(cPosition, 0, psSearch_temp->iLength);
         }
-        else return NOT_FOUND;
+        else return NULL;
     }
-    return NOT_FOUND;
+    return NULL;
 }
 
 /* '?mask' */
-int search_mode_4(char* szLine, void *psSearch)
+char* search_mode_4(char* szLine, void *psSearch)
 {
     search_t* psSearch_temp = (search_t*)psSearch;
     char *cPosition = szLine, *cNext, *cPrevius;
@@ -188,9 +186,8 @@ int search_mode_4(char* szLine, void *psSearch)
     while (cPosition!=NULL)
     {
         iStatus = 0;
-        if ((cPosition=strstr(cPosition, psSearch_temp->szMask))!=NULL)
+        if ((cPosition = strstr(cPosition, psSearch_temp->szMask))!=NULL)
         {
-            cNext = safe_move(cPosition, 0, psSearch_temp->iLength);
             cPrevius = safe_move(cPosition, 1, 1);
             /*Check the previous symbol*/
             if (cPosition != szLine)
@@ -213,7 +210,7 @@ int search_mode_4(char* szLine, void *psSearch)
                     else goto IF_END;
                 }
             }
-            
+            cNext = safe_move(cPosition, 0, psSearch_temp->iLength);
             /* Check the next symbol */
             if (*cNext =='\0')
             {
@@ -226,17 +223,17 @@ int search_mode_4(char* szLine, void *psSearch)
             else iStatus++;
             
             /* Check, if both conditions are met */
-            if (iStatus==2) return FOUND;
+            if (iStatus==2) return cPosition;
             
         IF_END:
             cPosition = safe_move(cPosition, 0, psSearch_temp->iLength);
         }
-        else return NOT_FOUND;
+        else return NULL;
     }
-    return NOT_FOUND;
+    return NULL;
 }
 /* 'mask?' */
-int search_mode_5(char* szLine, void *psSearch)
+char* search_mode_5(char* szLine, void *psSearch)
 {
     search_t* psSearch_temp = (search_t*)psSearch;
     char *cPosition = szLine, *cNext = NULL;
@@ -245,7 +242,7 @@ int search_mode_5(char* szLine, void *psSearch)
     while (cPosition!=NULL)
     {
         iStatus = 0;
-        if ((cPosition=strstr(cPosition, psSearch_temp->szMask))!=NULL)
+        if ((cPosition = strstr(cPosition, psSearch_temp->szMask))!=NULL)
         {
             /*Check the previous symbol*/
             if (cPosition == szLine)
@@ -264,7 +261,7 @@ int search_mode_5(char* szLine, void *psSearch)
             /*check the Next symbol*/
             if (*(cNext = safe_move(cPosition, 0, psSearch_temp->iLength))!= '\0')
             {
-                ;
+                
                 if (*(cNext = safe_move(cNext, 0, 1)) == '\0')
                 {
                     iStatus++;
@@ -277,26 +274,25 @@ int search_mode_5(char* szLine, void *psSearch)
             }
             else goto IF_END;
             
-            if (iStatus==2) return FOUND;
+            if (iStatus==2) return cPosition;
             
         IF_END:
             cPosition = safe_move(cPosition, 0, psSearch_temp->iLength);
         }
-        else return NOT_FOUND;
+        else return NULL;
     }
-    return NOT_FOUND;
+    return NULL;
 }
 /* '*mask?' */
-int search_mode_6(char* szLine, void *psSearch)
+char* search_mode_6(char* szLine, void *psSearch)
 {
     search_t* psSearch_temp = (search_t*)psSearch;
     char *cPosition = szLine, *cNext = NULL;
     
     while (cPosition!=NULL)
     {
-        if ((cPosition=strstr(cPosition, psSearch_temp->szMask))!=NULL)
+        if ((cPosition = strstr(cPosition, psSearch_temp->szMask))!=NULL)
         {
-            ;
             /*Check the next symbol*/
             /* If there is no character where ? must be */
             if (*(cNext = safe_move(cPosition, 0, psSearch_temp->iLength)) == '\0')
@@ -307,57 +303,58 @@ int search_mode_6(char* szLine, void *psSearch)
             {
                 if (*(cNext = safe_move(cNext, 0, 1)) == '\0')
                 {
-                    return FOUND;
+                    return cPosition;
                 }
-                else if (compare_symbol_to_common_symbols(cNext)!=FOUND)
+                else if (compare_symbol_to_common_symbols(cNext)==FOUND)
                 {
-                    return FOUND;
+                    return cPosition;
                 }
+                else goto IF_END;
             }
         }
-        else return NOT_FOUND;
+        else return NULL;
     IF_END:
         cPosition = safe_move(cPosition, 0, psSearch_temp->iLength);
     }
-    return NOT_FOUND;
+    return NULL;
 }
 /* '?mask*' */
-int search_mode_7(char* szLine, void *psSearch)
+char* search_mode_7(char* szLine, void *psSearch)
 {
     search_t* psSearch_temp = (search_t*)psSearch;
     char *cPosition = szLine, *cPrevius = NULL;
     
     while (cPosition!=NULL)
     {
-        if ((cPosition=strstr(cPosition, psSearch_temp->szMask))!=NULL)
+        if ((cPosition = strstr(cPosition, psSearch_temp->szMask))!=NULL)
         {
             /*Check the previous symbol*/
             if (cPosition != szLine)
             {
                 if (( cPrevius = safe_move(cPosition, 1, 1))==szLine)
                 {
-                    return FOUND;
+                    return cPosition;
                 }
                 else
                 {
                     if ((cPrevius = safe_move(cPrevius, 1, 1))==szLine)
                     {
-                        return FOUND;
+                        return cPosition;
                     }
                     else if(compare_symbol_to_common_symbols(cPrevius) == FOUND)
                     {
-                        return FOUND;
+                        return cPosition;
                     }
                 }
             }
             cPosition = safe_move(cPosition, 0, psSearch_temp->iLength);
-        }else return NOT_FOUND;
+        }else return NULL;
     }
-    return NOT_FOUND;
+    return NULL;
 }
 
 /* 'mask' */
-int search_mode_8(char* szLine, void *psSearch)
+char* search_mode_8(char* szLine, void *psSearch)
 {
     search_t* psSearch_temp = (search_t*)psSearch;
     char *cPosition = szLine, *cNext=NULL;
@@ -393,14 +390,14 @@ int search_mode_8(char* szLine, void *psSearch)
             else iStatus++;
             
             /* Check, if both conditions are met */
-            if (iStatus==2) return FOUND;
+            if (iStatus==2) return cPosition;
             
             IF_END:
             cPosition = safe_move(cPosition, 0, psSearch_temp->iLength);
         }
-        else return NOT_FOUND;
+        else return NULL;
     }
-    return NOT_FOUND;
+    return NULL;
 }
 
 /* Create a structure for Search */

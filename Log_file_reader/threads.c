@@ -295,6 +295,7 @@ reader_t* reader_t_init(char* file_path)
     }
     pReader_t->szLine = malloc(pReader_t->iCurent_LineSize+2);
     
+    
     return pReader_t;
 }
 
@@ -318,59 +319,68 @@ int read_file_head(common_data_t *pthData, reader_t* pReader_t)
 {
     if (pthData==NULL || pReader_t==NULL) { return ERROR; }
     
-    int i = 0, j = 0, iCounter = 0;
+    int  iCounter = 0;
+    long j = 0, lPosition = 0, l=0;
     node_t *pnTemp = NULL;
+    char pc;
     
-    while (pReader_t->lFileSize>0) /* Read file block by block cycle*/
+    while (1) /* Read file block by block cycle*/
     {
         /* Lets check that we still need to read */
         if (thread_flag_check(&pthData->uiFlags, READER)!=0) { break; }
         
         /* and now we will read and scan another block */
+        /* Set uo the position from were we need to read */
+        fseek(pReader_t->file, lPosition, SEEK_SET);
         fread(pReader_t->Block, sizeof(char), pReader_t->lBytesToReadOnce, pReader_t->file);
         
-        /* Decreasing the amount of unread bytes */
-        pReader_t->lFileSize -= pReader_t->lBytesToReadOnce;
+        lPosition += pReader_t->lBytesToReadOnce;
         
-        /* Scaning block for lines */
-        for (i = 0; i < (pReader_t->lBytesToReadOnce); i++)
+        j = 0;
+        
+        for (l = pReader_t->lBytesToReadOnce-1; l != 0;l--)
         {
-            if (j == (pReader_t->iCurent_LineSize) ) /* If curent possible line is too big */
+            if ( (pc = pReader_t->Block[l]) == '\n')
             {
-                /* reallocate the szline memory */
-                pReader_t->szLine = realoc_string(pReader_t->szLine, &pReader_t->iCurent_LineSize);
-            }
-            if ( ((pReader_t->szLine[j] = pReader_t->Block[i]) =='\n') ||
-                pReader_t->Block[i]=='\0'|| j==(MAX_LINE - 2))
-            {
-                pReader_t->szLine[j]='\0';
+                pReader_t->Block[l] = 0;
                 /* Creating a new node for this line */
-                pnTemp = node_init(pReader_t->szLine);
-                
+                pnTemp = node_init(pReader_t->Block, l+1);
                 /* Transfer a new node to the search queue */
                 iCounter = push_new_node_to_queue(pnTemp, pthData->plSearchQueue,
                                                   &mutex_RS, semaphor_RS);
-                j = 0; /* position in line to 0 */
-                
+                pReader_t->lFileSize +=j;
+                lPosition -= j;
+                j=0;
+                l=0;
                 if (thread_flag_check(&pthData->uiFlags, READER)!=0) { break; }
                 
                 /* Give a break to the search thread, if there is too many nodes in queue */
-                counter_check(iCounter,20000,1000);
+                counter_check(iCounter,5,100000);
+                break;
             }
-            else{ j++; } /* increment line position */
+            else j++;
         }
-        
+        if (j!=0)
+        {
+            sprintf(pReader_t->Block + pReader_t->lBytesToReadOnce - 17, "|FORCED_LINE_END|");
+            pReader_t->lFileSize +=18;
+            lPosition -= 18;
+            j=0;
+            /* Creating a new node for this line */
+            pnTemp = node_init(pReader_t->Block, pReader_t->lBytesToReadOnce);
+            /* Transfer a new node to the search queue */
+            iCounter = push_new_node_to_queue(pnTemp, pthData->plSearchQueue,
+                                              &mutex_RS, semaphor_RS);
+        }
+        /* Decreasing the amount of unread bytes */
+        pReader_t->lFileSize -= pReader_t->lBytesToReadOnce + j ;
         /* if amount of unread bytes is smaller then a read block */
         if (pReader_t->lFileSize < pReader_t->lBytesToReadOnce)
         {
             pReader_t->lBytesToReadOnce = pReader_t->lFileSize;
         }
-        if ( (pReader_t->lFileSize == 0) && j!= 0)
+        if (pReader_t->lFileSize == 0)
         {
-            /* Read the last line if it without '\0' or '\n' */
-            pReader_t->szLine[j] = '\0';
-            pnTemp = node_init(pReader_t->szLine);
-            push_new_node_to_queue(pnTemp, pthData->plSearchQueue, &mutex_RS, semaphor_RS);
             break;
         }
     }
@@ -396,7 +406,7 @@ int read_file_tail(common_data_t *pthData, reader_t* pReader_t)
         fseek(pReader_t->file, -lPosition, SEEK_END);
         fread(pReader_t->Block, sizeof(char), pReader_t->lBytesToReadOnce, pReader_t->file);
         pReader_t->lFileSize -= pReader_t->lBytesToReadOnce;
-        
+
         /* Scaning block for lines */
         for (lI = pReader_t->lBytesToReadOnce-1; lI>=0; lI--)
         {
@@ -410,15 +420,13 @@ int read_file_tail(common_data_t *pthData, reader_t* pReader_t)
                 array_swap(pReader_t->szLine, &j);
                 pReader_t->szLine[j]='\0';
                 /* Creating a new node for this line */
-                pnTemp = node_init(pReader_t->szLine);
+                pnTemp = node_init(pReader_t->szLine,j);
                 /* Transfer a new node to the search queue */
                 iCounter = push_new_node_to_queue(pnTemp, pthData->plSearchQueue,
                                                   &mutex_RS, semaphor_RS);
                 j = 0; /* position in line to 0 */
                 
-                if (thread_flag_check(&pthData->uiFlags, READER)!=0) {
-                    return SUCCESS;
-                }
+                if (thread_flag_check(&pthData->uiFlags, READER)!=0) { return SUCCESS; }
                 
                 /* Give a break to the search thread, if there is too many nodes in queue */
                 counter_check(iCounter,20000,1000);
@@ -431,7 +439,7 @@ int read_file_tail(common_data_t *pthData, reader_t* pReader_t)
             //j++;
             pReader_t->szLine[j] = '\0';
             array_swap(pReader_t->szLine, &j);
-            pnTemp = node_init(pReader_t->szLine);
+            pnTemp = node_init(pReader_t->szLine,j);
             push_new_node_to_queue(pnTemp, pthData->plSearchQueue, &mutex_RS, semaphor_RS);
             break;
         }
@@ -449,10 +457,9 @@ int read_file_tail(common_data_t *pthData, reader_t* pReader_t)
 void* search_thread(void *pThreadData)
 {
     common_data_t *pthData = (common_data_t*)pThreadData;
-    node_t *pnTemp = NULL;
-    search_t *psSearch = NULL;
-    int iSearch = 0;
-    char *szMask_temp;
+    node_t *pnTemp_S = NULL, *pnTemp_W = NULL; search_t *psSearch = NULL;
+    int iSearch = 0; long lLength = 0;
+    char *szMask_temp = NULL, *cPosition = NULL, *cStart = NULL, *cEnd = NULL;
     
     szMask_temp=malloc(strlen(pthData->pInputData->szMask)+2);
     strlcpy_udev(szMask_temp, pthData->pInputData->szMask, strlen(pthData->pInputData->szMask)+1);
@@ -473,27 +480,57 @@ void* search_thread(void *pThreadData)
         /* Lets wait untill we have some thing to scan */
         sem_wait(semaphor_RS);
         /* If we have the line for search */
-        pnTemp = get_node_from_queue(pthData->plSearchQueue, &mutex_RS, &iSearch);
+        pnTemp_S = get_node_from_queue(pthData->plSearchQueue, &mutex_RS, &iSearch);
         if (iSearch == 1)
         {
+            cPosition=NULL;
+            cEnd=pnTemp_S->szLine;
             /* let's search in the line */
-            if (  psSearch->search(pnTemp->szLine, (void *)psSearch) == FOUND)
+            
+            while ( (cPosition = psSearch->search(cEnd, (void *)psSearch)) !=NULL)
             {
-                /* if we found something */
-                push_new_node_to_queue(pnTemp, pthData->plWrightQueue, &mutex_SW, semaphor_SW);
-                iSearch=0;
+                lLength =0;
+                cEnd = cStart = cPosition;
+                
+                while (cStart!=pnTemp_S->szLine)
+                {
+                    if (*cStart != '\n' && *cStart != '\0' && cStart!=pnTemp_S->szLine)
+                    {
+                        cStart--;
+                        lLength++;
+                    }
+                    else
+                    {
+                        cStart++;
+                        break;
+                    }
+                }
+                while (*cEnd!= '\0')
+                {
+                    if (*cEnd != '\n')
+                    {
+                        cEnd++;
+                        lLength++;
+                    }
+                    else
+                    {
+                        *cEnd = '\0';
+                        cEnd++;
+                        break;
+                    }
+                }
+                pnTemp_W = node_init(cStart, lLength+1);
+                push_new_node_to_queue(pnTemp_W, pthData->plWrightQueue, &mutex_SW, semaphor_SW);
+                pnTemp_W = NULL;
             }
-            else
-            {
-                /* nothing we need is in this line, let's destroy it */
-                destroy_node(pnTemp); pnTemp=NULL;
-                iSearch=0;
-            }
+            
+            iSearch=0;
+            /* nothing we need is in this line, let's destroy it */
+            destroy_node(pnTemp_S); pnTemp_S=NULL;
         }
-        else if (iSearch == 0)
+        else // if (iSearch == 0)
         {
             /* if we have nothing to do, lets check that we still need to work */
-            
             if (thread_flag_check(&pthData->uiFlags, SEARCHER)!=0)
             {
                 break;

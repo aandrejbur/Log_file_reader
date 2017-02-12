@@ -15,7 +15,7 @@
 #define BACKWARD 1
 
 /* Pointer to search function */
-typedef int (search_function)( char* szline, void *psSearch );
+typedef char* (search_function)( char* szline, void *psSearch );
 
 /* A structure for search */
 typedef struct search_t
@@ -26,7 +26,6 @@ typedef struct search_t
     char *szMask;
     /* A pointer to the search function */
     search_function *search;
-    
 } search_t;
 
 /* Safe move for multibyte symbols */
@@ -35,25 +34,30 @@ char *safe_move(char* szString, int imode, int iLength);
 /* Compare a symbol to the common symbols by codes (unsigned char)*/
 int compare_symbol_to_common_symbols(char *Symbol);
 
+/* Compute prefix function */
+int* KMP_prefix_computing(char* szMask,int iMaskLength);
+
+/* Search by kmp algo */
+char* KMP_search(char* szString, search_t* psSearch);
 /* Search functions coresponding to mask */
 /* *mask* */
-int search_mode_0(char* szLine, void *psSearch);
+char* search_mode_0(char* szLine, void *psSearch);
 /* *mask */
-int search_mode_1(char* szLine, void *psSearch);
+char* search_mode_1(char* szLine, void *psSearch);
 /* mask* */
-int search_mode_2(char* szLine, void *psSearch);
+char* search_mode_2(char* szLine, void *psSearch);
 /* ?mask? */
-int search_mode_3(char* szLine, void *psSearch);
+char* search_mode_3(char* szLine, void *psSearch);
 /* ?mask */
-int search_mode_4(char* szLine, void *psSearch);
+char* search_mode_4(char* szLine, void *psSearch);
 /* mask? */
-int search_mode_5(char* szLine, void *psSearch);
+char* search_mode_5(char* szLine, void *psSearch);
 /* *mask? */
-int search_mode_6(char* szLine, void *psSearch);
+char* search_mode_6(char* szLine, void *psSearch);
 /* ?mask* */
-int search_mode_7(char* szLine, void *psSearch);
+char* search_mode_7(char* szLine, void *psSearch);
 /* mask */
-int search_mode_8(char* szLine, void *psSearch);
+char* search_mode_8(char* szLine, void *psSearch);
 
 /* Create a structure for Search */
 search_t* compile_search_expression(char* szMask);
