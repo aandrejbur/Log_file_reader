@@ -338,7 +338,7 @@ int read_file_head(common_data_t *pthData, reader_t* pReader_t)
         
         j = 0;
         
-        for (l = pReader_t->lBytesToReadOnce-1; l != 0;l--)
+        for (l = pReader_t->lBytesToReadOnce-1; l >= 0;l--)
         {
             if ( (pc = pReader_t->Block[l]) == '\n')
             {
@@ -358,20 +358,20 @@ int read_file_head(common_data_t *pthData, reader_t* pReader_t)
                 counter_check(iCounter,5,100000);
                 break;
             }
+            else if (j!=0 && l==0)
+            {
+                pReader_t->Block[j+1] = 0;
+                j=0;
+                /* Creating a new node for this line */
+                pnTemp = node_init(pReader_t->Block, pReader_t->lBytesToReadOnce);
+                /* Transfer a new node to the search queue */
+                iCounter = push_new_node_to_queue(pnTemp, pthData->plSearchQueue,
+                                                  &mutex_RS, semaphor_RS);
+                break;
+            }
             else j++;
         }
-        if (j!=0)
-        {
-            sprintf(pReader_t->Block + pReader_t->lBytesToReadOnce - 17, "|FORCED_LINE_END|");
-            pReader_t->lFileSize +=18;
-            lPosition -= 18;
-            j=0;
-            /* Creating a new node for this line */
-            pnTemp = node_init(pReader_t->Block, pReader_t->lBytesToReadOnce);
-            /* Transfer a new node to the search queue */
-            iCounter = push_new_node_to_queue(pnTemp, pthData->plSearchQueue,
-                                              &mutex_RS, semaphor_RS);
-        }
+        
         /* Decreasing the amount of unread bytes */
         pReader_t->lFileSize -= pReader_t->lBytesToReadOnce + j ;
         /* if amount of unread bytes is smaller then a read block */
